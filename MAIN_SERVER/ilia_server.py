@@ -13,16 +13,14 @@ import time
 
 query_to_lbs = defaultdict(list)
 
-
 def subscribe(username, password):
     return {'response': {"subscriber_id": str(username)+str(password)}}
-
 
 def poll(token, query):
     if query not in query_to_lbs:
         usertoken = utils.generate_token()
         fport = utils.generate_port(usertoken)
-        Popen([conf.runner_loadbalancer, conf.file_loadbalancer, str(fport)])
+        Popen([conf.runner, conf.file_loadbalancer, query, str(fport)])
 
         client = SoapClient(
             location=conf.hostname % fport,
@@ -35,7 +33,7 @@ def poll(token, query):
 
     response = query_to_lbs[query][0].poll()
 
-    return {'response': {"data": response.response}}
+    return {'response':{"data": response.response}}
 
 
 class Server:
