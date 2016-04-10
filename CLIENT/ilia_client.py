@@ -46,7 +46,7 @@ class Client:
             return
 
         while(True):
-            response = self._client.poll(token=self._id)
+            response = self._client.poll(token=self._id, query="CAT")
             reply = response.data
 
             print reply
@@ -64,4 +64,3 @@ if client is not None:
 
     c.connect()
     c.poll_forever(conf.pollInterval)
-
