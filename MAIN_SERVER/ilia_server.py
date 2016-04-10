@@ -11,11 +11,14 @@ import time
 
 query_to_lbs = defaultdict(list)
 
+
 def publish(publisher_id, message):
     return "CAT"
 
+
 def subscribe(username, password):
     return {'response':{"subscriber_id":str(random.random())}}
+
 
 def poll(token, query):
     if query not in query_to_lbs:
@@ -32,9 +35,8 @@ def poll(token, query):
         time.sleep(1)
     response = query_to_lbs[query][0].poll()
 
-    # Do this for node
-
     return {'response':{"data": response.response}}
+
 
 class Server:
     """

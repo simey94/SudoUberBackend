@@ -1,10 +1,15 @@
 """Class that is used as a Load Balancer"""
-
+import random
 import sys
-sys.path.append("..")
-
+import time
+from collections import defaultdict
+from subprocess import Popen
+from pysimplesoap.client import SoapClient
 from BaseHTTPServer import HTTPServer
 from pysimplesoap.server import SoapDispatcher, SOAPHandler
+
+sys.path.append("..")
+query_to_lbs = defaultdict(list)
 
 class LoadBalancerServer:
     """Load Balancer"""
@@ -26,8 +31,23 @@ class LoadBalancerServer:
             returns={'response': str},
             args={})
 
-    def poll(self):
-        return {'response': "HEEEEY"}
+    def poll(self, query):
+        if query not in query_to_lbs:
+            node_token = 8000 + int(50 * random.random())
+            Popen(["python", "node.py", str(node_token)])
+
+            client = SoapClient(
+                location="http://localhost:%s" % str(node_token),
+                action="http://localhost:%s" % str(node_token),
+                soap_ns="soap",
+                trace=False,
+                ns=False)
+            query_to_lbs[query].append(client)
+            time.sleep(1)
+        response = query_to_lbs[query][0].poll()
+
+        return {'response': {"data": response.response}}
+
 
     def run(self):
         """Runs the server"""
