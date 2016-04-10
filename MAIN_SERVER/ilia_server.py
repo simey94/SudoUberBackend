@@ -1,77 +1,67 @@
 import sys
+
 sys.path.append("..")
 
 from pysimplesoap.server import SoapDispatcher, SOAPHandler
-from pysimplesoap.client import SoapClient, SoapFault
+from pysimplesoap.client import SoapClient
 from BaseHTTPServer import HTTPServer
 from subprocess import Popen
 from collections import defaultdict
-import random
+import configuration as conf
+import server_utils as utils
 import time
 
 query_to_lbs = defaultdict(list)
 
-def publish(publisher_id, message):
-    return "CAT"
 
 def subscribe(username, password):
-    return {'response':{"subscriber_id":str(random.random())}}
+    return {'response': {"subscriber_id": str(username)+str(password)}}
+
 
 def poll(token, query):
     if query not in query_to_lbs:
-        lb_token = 8000 + int(50*random.random())
-        Popen(["python", "ilia_loadbalancer.py", str(lb_token)])
+        usertoken = utils.generate_token()
+        fport = utils.generate_port(usertoken)
+        Popen([conf.runner_loadbalancer, conf.file_loadbalancer, str(fport)])
 
         client = SoapClient(
-                location="http://localhost:%s" % str(lb_token),
-                action="http://localhost:%s" % str(lb_token),
-                soap_ns="soap",
-                trace=False,
-                ns=False)
+            location=conf.hostname % fport,
+            action=conf.hostname % fport,
+            soap_ns="soap",
+            trace=False,
+            ns=False)
         query_to_lbs[query].append(client)
         time.sleep(1)
+
     response = query_to_lbs[query][0].poll()
 
-    # Do this for node
+    return {'response': {"data": response.response}}
 
-    return {'response':{"data": response.response}}
 
 class Server:
-    """
-    Main server
-    """
+    """Main server"""
 
     def __init__(self):
-        """
-        Creates SOAP dispatcher
-        """
+        """Creates SOAP dispatcher"""
         self.dispatcher = SoapDispatcher(
             name="Main Server",
-            location="http://localhost:8008",
-            action="http://localhost:8008",
-            documentation = "CS3301 Pseudo-Uber service-oriented system",
+            location=conf.location,
+            action=conf.location,
+            documentation="CS3301 Pseudo-Uber service-oriented system",
             trace=True,
             ns=True)
 
-        self.dispatcher.register_function('publish', publish,
-            returns={'response': str},
-            args={'publisher_id': int, 'message': str})
-
         self.dispatcher.register_function('subscribe', subscribe,
-            returns={'response': {"subscriber_id": str}},
-            args={'username':str, 'password': str})
+                                          returns=conf.subscribe_return_pattern,
+                                          args=conf.subscribe_arg_pattern)
 
         self.dispatcher.register_function('poll', poll,
-            returns={'response': {"data": str}},
-            args={'token': str, 'query': str})
+                                          returns=conf.poll_return_pattern,
+                                          args=conf.poll_arg_pattern)
 
     def run(self):
-        """
-        Runs the server
-        """
-        self.subscribers = {}
-
-        httpd = HTTPServer(("", 8008), SOAPHandler)
+        """Runs the server"""
+        httpd = HTTPServer((conf.http_hostname, conf.s_port), SOAPHandler)
         httpd.dispatcher = self.dispatcher
         httpd.serve_forever()
 

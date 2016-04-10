@@ -50,7 +50,7 @@ class Server:
             trace=True,
             ns=True)
 
-        self.dispatcher.register_function('calculate', calculate, 
+        self.dispatcher.register_function('calculate', calculate,
             returns={'response': str},
             args={'location': str})
 
@@ -59,8 +59,6 @@ class Server:
         """
         Runs the server
         """
-        self.subscribers = {}
-
         httpd = HTTPServer(("", int(sys.argv[1])), SOAPHandler)
         httpd.dispatcher = self.dispatcher
         httpd.serve_forever()

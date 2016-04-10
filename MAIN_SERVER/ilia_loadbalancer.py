@@ -5,6 +5,7 @@ sys.path.append("..")
 
 from BaseHTTPServer import HTTPServer
 from pysimplesoap.server import SoapDispatcher, SOAPHandler
+import configuration as conf
 
 class LoadBalancerServer:
     """Load Balancer"""
@@ -15,10 +16,11 @@ class LoadBalancerServer:
         """
 
         self.port = port
+
         self.dispatcher = SoapDispatcher(
-            name="Load Balancer",
-            location="http://localhost:%s" % self.port,
-            action="http://localhost:%s" % self.port,
+            name="Load Balancer %s" % self.port,
+            location=conf.hostname % self.port,
+            action=conf.hostname % self.port,
             trace=True,
             ns=True)
 
