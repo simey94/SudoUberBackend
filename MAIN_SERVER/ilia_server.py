@@ -32,6 +32,8 @@ def poll(token, query):
         time.sleep(1)
     response = query_to_lbs[query][0].poll()
 
+    # Do this for node
+
     return {'response':{"data": response.response}}
 
 class Server:
