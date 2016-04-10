@@ -16,7 +16,7 @@ from BaseHTTPServer import HTTPServer
 subscribers = {} # user_token -> client
 publishers = defaultdict(list) # service_token -> tags
 
-interest = defaultdict(list)
+interest = defaultdict(list) # user_token -> tags
 
 def subscribe(username, password, port):
     token = utils.generate_token(username, password, port)
@@ -24,12 +24,16 @@ def subscribe(username, password, port):
     subscribers[token] = client
     return {"subscriber_id": token}
 
+def subscribe_to_tags(token, tags):
+    interest[token] += tags
+    return {"errorcode": globalconf.SUCCESS_CODE}
+
 def register_publisher(service_name, port, tags):
     token = utils.generate_token(service_name, service_name, port)
     client = SoapClient(location=globalconf.hostname % str(port), action=globalconf.hostname % str(port),
                         soap_ns="soap", trace=True, ns=True)
     publishers[token] += tags
-    return {"service_id": token}
+    return {"errorcode": globalconf.SUCCESS_CODE}
 
 def publish(service_token, message):
     pass
@@ -45,6 +49,18 @@ dispatcher = SoapDispatcher(
 dispatcher.register_function('subscribe', subscribe,
                                   returns={"subscriber_id": str},
                                   args={"username": str, "password":str, "port": str})
+
+dispatcher.register_function('subscribe_to_tags', subscribe_to_tags,
+                             returns={"errorcode": int},
+                             args={"token": str, "tags": list})
+
+dispatcher.register_function('publish', publish,
+                             returns={"errorcode": int},
+                             args={"service_token":str, "message":str})
+
+dispatcher.register_function('register_publisher', register_publisher,
+                             returns={"errorcode": int},
+                             args={"service_name": str, "port": str, "tags": list})
 
 httpd = HTTPServer((globalconf.http_hostname, globalconf.s_port), SOAPHandler)
 httpd.dispatcher = dispatcher
