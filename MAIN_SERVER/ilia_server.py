@@ -3,7 +3,11 @@ sys.path.append("..")
 
 from pysimplesoap.server import SoapDispatcher, SOAPHandler
 from BaseHTTPServer import HTTPServer
+from ilia_loadbalancer import LoadBalancer
+
 import random
+
+value_to_lb = {}
 
 def publish(publisher_id, message):
     return "CAT"
@@ -16,7 +20,13 @@ dispatcher = SoapDispatcher(
         ns=False)
 
 def subscribe(username, password):
-    return {'response':{"subscriber_id":str(random.random())}}
+
+    token = random.random()
+    if token not in value_to_lb:
+        lb = LoadBalancer()
+        lb.add_usertoken(token)
+
+    return {'response':{"subscriber_id":str(token)}}
 
 def poll(token):
     return {'response':{"data":str(random.random())}}
