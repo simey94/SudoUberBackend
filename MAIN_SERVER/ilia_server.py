@@ -5,38 +5,60 @@ from pysimplesoap.server import SoapDispatcher, SOAPHandler
 from BaseHTTPServer import HTTPServer
 import random
 
+
 def publish(publisher_id, message):
     return "CAT"
 
-dispatcher = SoapDispatcher(
-        'my_dispatcher',
-        location="http://localhost:8008",
-        action="http://localhost:8008",
-        trace=False,
-        ns=False)
-
 def subscribe(username, password):
+    "Return subscriber id"
     return {'response':{"subscriber_id":str(random.random())}}
 
 def poll(token):
     return {'response':{"data":str(random.random())}}
 
-dispatcher.register_function('publish', publish, returns={'response': str},
-        args={'publisher_id': int, 'message': str})
 
-dispatcher.register_function('subscribe', subscribe,
-        returns={'response': {"subscriber_id": str}},
-        args={'username':str, 'password': str})
+class Server:
+    """
+    Main server
+    """
 
-dispatcher.register_function('poll', poll,
-        returns={'response': {"data": str}},
-        args={'token': str})
+    def __init__(self):
+        """
+        Creates SOAP dispatcher
+        """
+        self.dispatcher = SoapDispatcher(
+            name="Main Server",
+            location="http://localhost:8008",
+            action="http://localhost:8008",
+            documentation = "CS3301 Pseudo-Uber service-oriented system",
+            trace=True,
+            ns=True)
 
-subscribers = {}
+        self.dispatcher.register_function('publish', publish, 
+            returns={'response': str},
+            args={'publisher_id': int, 'message': str})
+
+        self.dispatcher.register_function('subscribe', subscribe,
+            returns={'response': {"subscriber_id": str}},
+            args={'username':str, 'password': str})
+
+        self.dispatcher.register_function('poll', poll,
+            returns={'response': {"data": str}},
+            args={'token': str})
+
+    def run(self):
+        """
+        Runs the server
+        """
+        self.subscribers = {}
+
+        httpd = HTTPServer(("", 8008), SOAPHandler)
+        httpd.dispatcher = self.dispatcher
+        httpd.serve_forever()
+
+if __name__ == '__main__':
+    server = Server()
+    server.run()
 
 
-print "Starting the server"
 
-httpd = HTTPServer(("", 8008), SOAPHandler)
-httpd.dispatcher = dispatcher
-httpd.serve_forever()
