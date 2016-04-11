@@ -30,7 +30,8 @@ _port = utils.generate_port()
 
 print "Username:%s, Password:%s, Port:%s" %(_username, _password, _port)
 
-client = SoapClient(location=globalconf.location, action=globalconf.location, soap_ns="soap", trace=False, ns=False)
+# client = SoapClient(location=globalconf.location, action=globalconf.location, soap_ns="soap", trace=False, ns=False)
+client = utils.client(globalconf.location)
 
 dispatcher = SoapDispatcher(
     name="Client Username:%s, Password:%s, Port:%s" %(_username, _password, _port),
@@ -49,5 +50,3 @@ token = client.subscribe(username=_username, password=_password, port=_port).sub
 print "ASSIGNED TOKEN:%s" % token
 
 thread.join()
-
-

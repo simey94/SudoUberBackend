@@ -2,6 +2,8 @@
 
 import random
 import string
+from pysimplesoap.client import SoapClient
+
 
 def random_string(N):
     return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
@@ -23,3 +25,7 @@ def generate_token(username, password, port):
 
 def generate_port():
     return 7000 + int(1000 * random.random())
+
+
+def client(link):
+    return SoapClient(location=link, action=link, soap_ns="soap", trace=True, ns=False)
