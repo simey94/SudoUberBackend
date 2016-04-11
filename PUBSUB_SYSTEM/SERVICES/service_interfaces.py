@@ -7,7 +7,9 @@ class service_interface:
     def __init__(self):
         self.client = None
         self.token  = None
-
+        self.service_name = "CAT"
+        self.port = None
+        self.tags = ""
 
     # Ping the service to find if it is still alive
     def ping_service(hostname):

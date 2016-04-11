@@ -59,7 +59,7 @@ dispatcher.register_function('publish', publish,
                              args={"service_token":str, "message":str})
 
 dispatcher.register_function('register_publisher', register_publisher,
-                             returns={"errorcode": int},
+                             returns={"errorcode": int, "token" : str},
                              args={"service_name": str, "port": str, "tags": str})
 
 print "Running the server at %s:%s" % (globalconf.http_hostname, globalconf.s_port)
