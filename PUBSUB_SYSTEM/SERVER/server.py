@@ -6,9 +6,7 @@ sys.path.append("..")
 import configuration as localconf
 import global_configuration as globalconf
 import global_utils as utils
-from pysimplesoap.server import SoapDispatcher, SOAPHandler
 from collections import defaultdict
-from BaseHTTPServer import HTTPServer
 
 subscribers = {} # user_token -> client
 publishers = {} # service_token -> client
