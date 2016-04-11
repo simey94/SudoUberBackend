@@ -9,7 +9,6 @@ from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
 
-
 class price_calculator(service_interface):
 
     def __init__(self):
@@ -33,8 +32,8 @@ class price_calculator(service_interface):
 
         return journeyPrice
 
-    def initiate_connection(self):
-        self.client = utils.client(globalconf.location)
+    def initiate_connection(self, location):
+        self.client = utils.client(location)
 
     def get_connection(self):
         return self.client
@@ -45,9 +44,14 @@ class price_calculator(service_interface):
     def recover_message(self):
         pass
 
+if len(sys.argv) > 1:
+    linker = sys.argv[1]
+else:
+    linker = globalconf.location
+
 pc = price_calculator()
 pc.port = utils.generate_port()
 pc.tags = "cat,dog"
-pc.initiate_connection()
+pc.initiate_connection(linker)
 pc.register()
 pc.publish()

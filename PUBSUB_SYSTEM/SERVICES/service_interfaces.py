@@ -27,7 +27,7 @@ class service_interface:
             print hostname, 'is down!'
             return False
 
-    def initiate_connection(self):
+    def initiate_connection(self, location):
         """returns a client conenction to the server   """
         pass
 

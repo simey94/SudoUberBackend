@@ -2,7 +2,7 @@
 
 """Load balancer stuff"""
 runner = "python"
-file_loadbalancer = "ilia_loadbalancer.py"
+file_loadbalancer = "lb.py"
 file_node = "node.py"
 
 """Main server stuff"""
@@ -13,8 +13,8 @@ location = s_location % s_port
 hostname = "http://localhost:%s"
 http_hostname = ""
 
-
 publish_interval = 5
+connection_threashold = 4
 
 """Response patterns"""
 subscribe_return_pattern = {'response': {"subscriber_id": str}}
