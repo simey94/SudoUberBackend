@@ -7,19 +7,6 @@ import configuration as localconf
 import global_configuration as globalconf
 import global_utils as utils
 
-from pysimplesoap.server import SoapDispatcher, SOAPHandler
-from pysimplesoap.client import SoapClient
-
-import time
-from threading import Thread
-from BaseHTTPServer import HTTPServer
-
-def start_server(port, dispatcher):
-    httpd = HTTPServer((globalconf.http_hostname, port), SOAPHandler)
-    httpd.dispatcher = dispatcher
-    print "Registring at %s " % (globalconf.http_hostname+str(port))
-    httpd.serve_forever()
-
 def receive(message):
     print message
     return {"ack": "I feel the bern"}
@@ -32,18 +19,10 @@ print "Username:%s, Password:%s, Port:%s" %(_username, _password, _port)
 
 client = utils.client(globalconf.location)
 
-dispatcher = SoapDispatcher(
-    name="Client Username:%s, Password:%s, Port:%s" %(_username, _password, _port),
-    location=globalconf.hostname % _port,
-    action=globalconf.hostname % _port,
-    documentation="doc",
-    trace=True,
-    ns=True)
-
+dispatcher = utils.dispatcher("Client Username:%s, Password:%s, Port:%s" % (_username, _password, _port), globalconf.hostname % str(_port))
 dispatcher.register_function('receiveArabMoney', receive, returns={"ack":str}, args={"message": str})
 
-thread = Thread(target = start_server, args=(_port, dispatcher ))
-thread.start()
+thread = utils.open_server_thread(globalconf.http_hostname, _port, dispatcher)
 
 token = client.subscribe(username=_username, password=_password, port=_port).subscriber_id
 print "ASSIGNED TOKEN:%s" % token

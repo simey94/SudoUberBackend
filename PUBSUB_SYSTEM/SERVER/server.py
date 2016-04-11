@@ -47,32 +47,25 @@ def publish(service_token, message):
     pass
 
 
-"""Server Dispatcher code"""
-dispatcher = SoapDispatcher(
-    name="Main Server",
-    location=globalconf.location,
-    action=globalconf.location,
-    documentation="doc",
-    trace=True,
-    ns=True)
-
+dispatcher = utils.dispatcher("Main server", globalconf.location)
 dispatcher.register_function('subscribe', subscribe,
                               returns={"subscriber_id": str},
                               args={"username": str, "password":str, "port": str})
 
-# dispatcher.register_function('subscribe_to_tags', subscribe_to_tags,
-#                              returns={"errorcode": int},
-#                              args={"token": str, "tags": str})
-#
-# dispatcher.register_function('publish', publish,
-#                              returns={"errorcode": int},
-#                              args={"service_token":str, "message":str})
-#
-# dispatcher.register_function('register_publisher', register_publisher,
-#                              returns={"errorcode": int},
-#                              args={"service_name": str, "port": str, "tags": str})
+dispatcher.register_function('subscribe_to_tags', subscribe_to_tags,
+                             returns={"errorcode": int},
+                             args={"token": str, "tags": str})
+
+dispatcher.register_function('publish', publish,
+                             returns={"errorcode": int},
+                             args={"service_token":str, "message":str})
+
+dispatcher.register_function('register_publisher', register_publisher,
+                             returns={"errorcode": int},
+                             args={"service_name": str, "port": str, "tags": str})
 
 print "Running the server at %s:%s" % (globalconf.http_hostname, globalconf.s_port)
-httpd = HTTPServer((globalconf.http_hostname, globalconf.s_port), SOAPHandler)
-httpd.dispatcher = dispatcher
-httpd.serve_forever()
+
+thread = utils.open_server_thread(globalconf.http_hostname, globalconf.s_port, dispatcher)
+
+thread.join()
