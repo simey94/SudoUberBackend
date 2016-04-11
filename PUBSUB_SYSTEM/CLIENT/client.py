@@ -30,7 +30,6 @@ _port = utils.generate_port()
 
 print "Username:%s, Password:%s, Port:%s" %(_username, _password, _port)
 
-# client = SoapClient(location=globalconf.location, action=globalconf.location, soap_ns="soap", trace=False, ns=False)
 client = utils.client(globalconf.location)
 
 dispatcher = SoapDispatcher(
