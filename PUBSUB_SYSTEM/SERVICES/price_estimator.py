@@ -5,6 +5,7 @@ sys.path.append("..")
 sys.path.append("../..")
 import weather_forecaster
 import timing_service
+import holidays
 
 from service_interfaces import service_interface
 import global_configuration as globalconf
@@ -21,8 +22,8 @@ class price_calculator(service_interface):
 
         degreesC = weather_forecaster.get_degrees_c(location)
         currentDateTime = timing_service.timing_pricing()
-        # us_holidays = holidays.UnitedStates()
-        us_holidays = []
+        us_holidays = holidays.UnitedStates()
+
         if currentDateTime.date() in us_holidays:
             journeyPrice *= 1.2
         if demand > supply:
