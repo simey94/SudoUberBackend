@@ -49,5 +49,3 @@ token = client.subscribe(username=_username, password=_password, port=_port).sub
 print "ASSIGNED TOKEN:%s" % token
 
 thread.join()
-
-
