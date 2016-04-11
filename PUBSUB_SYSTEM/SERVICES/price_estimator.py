@@ -47,7 +47,6 @@ class price_calculator(service_interface):
     def recover_message(self):
         pass
 
-
 pc = price_calculator()
 pc.port = utils.generate_port()
 pc.tags = "cat,dog"

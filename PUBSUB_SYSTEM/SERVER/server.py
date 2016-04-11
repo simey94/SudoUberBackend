@@ -18,6 +18,7 @@ interest = defaultdict(list) # user_token -> tags
 def subscribe(username, password, port):
     token = utils.generate_token(username, password, port)
 
+    # Connection to a client
     client = utils.client(globalconf.hostname % str(port))
 
     subscribers[token] = client
