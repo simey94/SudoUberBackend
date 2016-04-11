@@ -16,7 +16,7 @@ class price_calculator(service_interface):
     def __init__(self):
         service_interface.__init__(self)
 
-    def price_calculation(demand, supply, location):
+    def price_calculation(self, demand, supply, location):
         journeyPrice = 1.00
 
         degreesC = weather_forecaster.get_degrees_c(location)
@@ -41,7 +41,7 @@ class price_calculator(service_interface):
         return self.client
 
     def get_data(self):
-        return price_calculator(10, 12, "London")
+        return self.price_calculation(10, 12, "London")
 
     def recover_message(self):
         pass

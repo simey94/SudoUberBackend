@@ -1,3 +1,8 @@
+import sys
+sys.path.append("../..")
+sys.path.append("..")
+
+import global_configuration as globalconf
 import os
 import time
 
@@ -46,7 +51,7 @@ class service_interface:
     def publish(self):
        while(True):
             # wait 10 seconds before publishing
-            time.sleep(10)
+            time.sleep(globalconf.publish_interval)
             # publish to server
-            connection = object.get_connection()
-            reply = connection.publish(service_token=self.token, message=object.getData())
+            connection = self.get_connection()
+            reply = connection.publish(service_token=self.token, message=self.get_data())

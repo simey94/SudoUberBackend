@@ -20,7 +20,7 @@ print "Username:%s, Password:%s, Port:%s" %(_username, _password, _port)
 client = utils.client(globalconf.location)
 
 dispatcher = utils.dispatcher("Client Username:%s, Password:%s, Port:%s" % (_username, _password, _port), globalconf.hostname % str(_port))
-dispatcher.register_function('receiveArabMoney', receive, returns={"ack":str}, args={"message": str})
+dispatcher.register_function('receive', receive, returns={"ack":str}, args={"message": str})
 
 thread = utils.open_server_thread(globalconf.http_hostname, _port, dispatcher)
 

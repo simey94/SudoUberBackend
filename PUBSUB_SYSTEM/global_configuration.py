@@ -14,6 +14,8 @@ hostname = "http://localhost:%s"
 http_hostname = ""
 
 
+publish_interval = 5
+
 """Response patterns"""
 subscribe_return_pattern = {'response': {"subscriber_id": str}}
 subscribe_arg_pattern = {'username': str, 'password': str}

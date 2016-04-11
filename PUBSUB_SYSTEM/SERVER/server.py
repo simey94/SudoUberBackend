@@ -37,12 +37,17 @@ def register_publisher(service_name, port, tags):
 
     publishers[token] = client
     publishers_tags[token] += tags #TODO: check if this works
-    return {"errorcode": globalconf.SUCCESS_CODE}
+    return {"token": token, "errorcode": globalconf.SUCCESS_CODE}
 
 
 def publish(service_token, message):
     #TODO: add publishing capability based on a set of tags
-    pass
+    print "[", service_token, "]", message
+
+    for user in subscribers:
+        subscribers[user].receive(message=message)
+
+    return {"errorcode": globalconf.SUCCESS_CODE}
 
 
 dispatcher = utils.dispatcher("Main server", globalconf.location)
