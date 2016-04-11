@@ -41,8 +41,8 @@ class LoadBalancerServer:
         else:
             return {'data': None, 'response_code': conf.ERROR_CODE}
 
-    def publish(self, p_message):
-        for user_token in self.messages:
+    # def publish(self, p_message):
+    #     for user_token in self.messages:
 
 
     def run(self):
