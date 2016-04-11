@@ -21,8 +21,8 @@ def generate_password():
 def generate_port(token):
     return 8000 + int(50 * random.random())
 
-def generate_token():
-    return random.random()
+def generate_server_token():
+    return random_string(10)
 
 def generate_token(username, password, port):
     return str(username)+str(password)+str(port)
@@ -45,7 +45,7 @@ def open_server_thread(hostname, port, dispatcher):
 
 
 def client(link):
-    return SoapClient(location=link, action=link, soap_ns="soap", trace=True, ns=False)
+    return SoapClient(location=link, action=link, soap_ns="soap", trace=False, ns=False)
 
 
 def dispatcher(name, location):
@@ -54,5 +54,5 @@ def dispatcher(name, location):
         location=location,
         action=location,
         documentation="doc",
-        trace=True,
+        trace=False,
         ns=False)
