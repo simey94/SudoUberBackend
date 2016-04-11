@@ -26,6 +26,6 @@ def generate_token(username, password, port):
 def generate_port():
     return 7000 + int(1000 * random.random())
 
-
 def client(link):
     return SoapClient(location=link, action=link, soap_ns="soap", trace=True, ns=False)
+
