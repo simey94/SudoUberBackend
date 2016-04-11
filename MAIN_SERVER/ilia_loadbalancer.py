@@ -1,6 +1,7 @@
 """Class that is used as a Load Balancer"""
-import random
 import sys
+sys.path.append("..")
+
 import time
 from collections import defaultdict
 from subprocess import Popen
@@ -9,51 +10,45 @@ from BaseHTTPServer import HTTPServer
 from pysimplesoap.server import SoapDispatcher, SOAPHandler
 import configuration as conf
 
-sys.path.append("..")
-query_to_lbs = defaultdict(list)
+from collections import defaultdict
+from threading import Thread
+
+node_to_connect = defaultdict(list)
 
 class LoadBalancerServer:
-    """Load Balancer"""
 
-    def __init__(self, port):
-        """
-        Creates SOAP dispatcher
-        """
+    def __init__(self, port, query):
+        """ Creates SOAP dispatcher """
 
         self.port = port
+        self.query = query
+
+        self.messages = defaultdict(list) # usertoken -> messages
+        self.last_send_nonce = defaultdict(int)
 
         self.dispatcher = SoapDispatcher(
-            name="Load Balancer %s" % self.port,
+            name="Load Balancer %s, %s" % (self.port, self.query),
             location=conf.hostname % self.port,
             action=conf.hostname % self.port,
             trace=True,
             ns=True)
 
-        self.dispatcher.register_function('poll', self.poll,
-            returns={'response': str},
-            args={})
+        self.dispatcher.register_function('poll', self.poll, returns={'response': str}, args={})
 
-    def poll(self, query):
-        if query not in query_to_lbs:
-            node_token = 8000 + int(50 * random.random())
-            Popen(["python", "node.py", str(node_token)])
+    def poll(self, user_token):
+        if user_token in self.messages:
+            return {'data': self.messages[user_token], 'response_code': conf.SUCCESS_CODE}
+        else:
+            return {'data': None, 'response_code': conf.ERROR_CODE}
 
-            client = SoapClient(
-                location="http://localhost:%s" % str(node_token),
-                action="http://localhost:%s" % str(node_token),
-                soap_ns="soap",
-                trace=False,
-                ns=False)
-            query_to_lbs[query].append(client)
-            time.sleep(1)
-        response = query_to_lbs[query][0].poll()
-
-        return {'response': {"data": response.response}}
+    def publish(self, p_message):
+        for user_token in self.messages:
 
 
     def run(self):
         """Runs the server"""
-        httpd = HTTPServer(( "", self.port), SOAPHandler)
+
+        httpd = HTTPServer((conf.http_hostname, self.port), SOAPHandler)
         httpd.dispatcher = self.dispatcher
         httpd.serve_forever()
 
@@ -62,7 +57,8 @@ if len(sys.argv) < 2:
     sys.exit(0)
 
 lb_token = int(sys.argv[1])
+query = sys.argv[2]
 
 if __name__ == '__main__':
-    server = LoadBalancerServer(lb_token)
+    server = LoadBalancerServer(lb_token, query)
     server.run()
