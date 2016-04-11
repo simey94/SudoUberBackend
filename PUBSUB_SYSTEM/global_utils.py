@@ -44,3 +44,4 @@ def open_thread(port, dispatcher):
 
 def client(link):
     return SoapClient(location=link, action=link, soap_ns="soap", trace=True, ns=False)
+
