@@ -4,6 +4,7 @@ import time
 
 class service_interface:
 
+    # Ping the service to find if it is still alive
     def ping_service(hostname):
         response = os.system("ping -c 1 " + hostname)
 
@@ -19,12 +20,15 @@ class service_interface:
         pass
 
     def get_connection(object):
+        """returns a connection to the server  for the client passed int  """
         pass
 
     def get_data(object):
+        """returns data that is to be published """
         pass
 
     def recover_message(object):
+        """ recovers messages that may be lost from queue """
         pass
 
     # Publish info
