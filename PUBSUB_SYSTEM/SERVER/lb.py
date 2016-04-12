@@ -14,6 +14,10 @@ from random import randint
 
 subscribers = {}  # user_token -> (user_token, utils.client(hostname), hostname)
 publishers = {} # service_token -> (service_token, service_name, client, service_link)
+subscribers_last_message_id = defaultdict(int) # user_token -> last id
+subscribers_last_event_id = defaultdict(int) # user_token -> last generated event id
+
+processing_messages = defaultdict(dict) # user_token -> event_id -> tuple
 
 name_publisher = defaultdict(list)
 
@@ -59,17 +63,40 @@ def request_services(user_token):
     msg = ",".join([ str(publishers[x][0]) for x in publishers])
     return {"services": msg}
 
-def service(user_token, service_token, additional_info):
-    events.put((user_token, service_token, additional_info))
-    return {"errorcode": globalconf.SUCCESS_CODE}
+def service(client_message_id, user_token, service_token, additional_info):
+    if (subscribers_last_message_id[user_token] + 1) != client_message_id:
+        print "Wrong client_id"
+        return {"errorcode": globalconf.REPETITION_CODE, "message_id": subscribers_last_message_id[user_token] + 1}
+    events.put(
+        (
+            user_token,
+            service_token,
+            additional_info,
+            client_message_id
+        )
+    )
+
+    subscribers_last_message_id[user_token] += 1
+    return {"errorcode": globalconf.SUCCESS_CODE, "message_id": subscribers_last_message_id[user_token]}
 
 def notify(user_token, hostname):
-    subscribers[user_token] = (user_token, utils.client(hostname), hostname)
+    subscribers[user_token] = (
+        user_token,
+        utils.client(hostname),
+        hostname
+    )
     return {"errorcode":globalconf.SUCCESS_CODE}
 
 
 def publish(service_token, user_token, event_id, message):
-    reply_events.put((user_token, service_token, event_id, message))
+    reply_events.put(
+        (
+            user_token,
+            service_token,
+            event_id,
+            message
+        )
+    )
     return {"errorcode": globalconf.SUCCESS_CODE}
 
 
@@ -88,29 +115,70 @@ def pick_service(service_name):
 
             return services[index]
 
+def recover(user_token, service_name, add_info, client_message_id):
+    events.put((user_token, service_name, add_info, client_message_id))
+
+def event_recovery():
+    while(True):
+        time.sleep(globalconf.event_recovery_sleep_time)
+        now = time.time()
+        for user_token in processing_messages:
+            for message in processing_messages[user_token]:
+                if (now-(message[4])) > globalconf.event_recovery_threashold:
+                    user_token, service_name, add_info, client_message_id, _ = message
+                    recover(user_token, service_name, add_info, client_message_id)
+
+
+
 def process_events():
+    global processing_messages, subscribers_last_event_id, events
+
     while True:
         if publish_lock != 0:
             continue
         try:
-            user_token, service_name, add_info = events.get(timeout=5)
-            event_id = utils.generate_server_token()
+            user_token, service_name, add_info, client_message_id = events.get(timeout=5)
+
+            event_id = subscribers_last_event_id[user_token]
+            subscribers_last_event_id[user_token] += 1
+
+            processing_messages[str(user_token)][str(event_id)] = (
+                    user_token,
+                    service_name,
+                    add_info,
+                    client_message_id,
+                    time.time()
+                 )
 
             service_token = pick_service(service_name)
 
             if service_token is None:
-                print "NOT FOUND SERVICE" #TODO: add reply to the client
+                print "NOT FOUND SERVICE"
                 continue
 
             print "Enqueueing %s(event) to %s->%s(Service Name)" % (event_id, service_token, service_name)
-            publishers[service_token][2].parse_event(event_id=event_id, user_token=user_token, service_token=service_token, add_info=add_info, reply_addr=(globalconf.hostname % port))
+            publishers[service_token][2].parse_event(
+                event_id=event_id,
+                user_token=user_token,
+                service_token=service_token,
+                add_info=add_info,
+                reply_addr=(globalconf.hostname % port)
+            )
         except Queue.Empty:
             continue
 
 def reply_to_events():
+    global processing_messages, reply_events, subscribers
+
     while True:
         try:
             user_token, service_token, event_id, message = reply_events.get(timeout=5)
+
+            if str(event_id) not in processing_messages[user_token]:
+                print "Message replay"
+                continue;
+
+            del processing_messages[user_token][str(event_id)]
             print "Replying[%s] to %s(user) with %s(msg)" % (event_id, user_token, message)
             subscribers[user_token][1].receive(message=message)
         except Queue.Empty:
@@ -132,8 +200,8 @@ dispatcher.register_function('publish', publish,
                              args={"service_token": str, "user_token": str, "event_id": str, "message": str})
 
 dispatcher.register_function('service', service,
-                             returns={"errorcode": int},
-                             args={"service_token": str, "user_token": str, "additional_info": str})
+                             returns={"errorcode": int, "message_id":int},
+                             args={"client_message_id": int, "service_token": str, "user_token": str, "additional_info": str})
 
 dispatcher.register_function('notify', notify,
                              returns={"errorcode": int},
@@ -155,3 +223,4 @@ server_thread = utils.open_server_thread(globalconf.http_hostname, port, dispatc
 
 Thread(target=process_events).start()
 Thread(target=reply_to_events).start()
+Thread(target=event_recovery).start()

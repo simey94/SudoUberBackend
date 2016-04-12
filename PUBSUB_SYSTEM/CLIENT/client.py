@@ -6,7 +6,7 @@ sys.path.append("..")
 import global_configuration as globalconf
 import global_utils as utils
 import time
-from random import randint
+from random import randint, random
 
 def receive(message):
     print "ANSWER:", message
@@ -34,6 +34,8 @@ time.sleep(5)
 server_client = utils.client(alloc_server)
 
 server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
+
+message_id = 1
 while(True):
     print "Looking for available services..."
     services = str(server_client.request_services(user_token=token).services)
@@ -49,7 +51,16 @@ while(True):
             ctoken = a_services[index]
 
         print "Requesting:", str(ctoken)
-        server_client.service(user_token=token, service_token=ctoken, additional_info="London")
+
+        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="London")
+
+        if int(response.errorcode) == globalconf.REPETITION_CODE:
+            message_id = int(response.message_id)
+        else:
+            if random() > 0.8:
+                message_id += randint(1, 7)
+            else:
+                message_id += 1
     else:
         print "No services found."
 
