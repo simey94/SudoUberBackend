@@ -9,7 +9,7 @@ import time
 from random import randint
 
 def receive(message):
-    print message
+    print "ANSWER:", message
     return {"ack": "I feel the bern"}
 
 _username = utils.generate_username()
@@ -35,11 +35,11 @@ server_client = utils.client(alloc_server)
 
 server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
 while(True):
+    print "Looking for available services..."
     services = str(server_client.request_services(user_token=token).services)
 
     if services != "":
-        print "Available services", services
-
+        print "Services:", services
         a_services = services.split(",")
 
         if len(a_services) == 1:
@@ -48,7 +48,12 @@ while(True):
             index = randint(0, len(a_services)-1)
             ctoken = a_services[index]
 
-        print ctoken
+        print "Requesting:", str(ctoken)
+        server_client.service(user_token=token, service_token=ctoken, additional_info="")
+    else:
+        print "No services found."
+
     time.sleep(3)
+    print "-"*10
 
 thread.join()

@@ -60,9 +60,7 @@ def alloc_server():
     return chosen_serv
 
 def sync_services():
-    print "Syncing the servers"
     for server in servers:
-        print "Sync:", server
         sync_service(server)
 
 def sync_service(server_token):
@@ -74,7 +72,6 @@ def sync_service(server_token):
 
     server_client.start_service_sync(sync_token=sync_token)
     for service in publishers:
-        print "Syncing publisher:", service
         service_token, service_name, _, service_link = publishers[service]
         server_client.sync_service(sync_token=sync_token, nonce=str(i), service_token=service_token, service_link=service_link, service_name=service_name)
         i+=1
@@ -83,10 +80,8 @@ def sync_service(server_token):
 def subscribe(username, password, port):
     token = utils.generate_token(username, password, port)
 
-    # client = utils.client(globalconf.hostname % str(port))
-    # subscribers[token] = client
-
     server_token = alloc_server()
+    print "Allocated %s(user) to %s(server)" % (username, server_token)
 
     return {"token": token, "server": servers[server_token][1]}
 
@@ -105,8 +100,7 @@ dispatcher.register_function('register_publisher', register_publisher,
                              args={"service_name": str, "port": str, "tags": str})
 
 
-print "Running the server at %s:%s" % (globalconf.http_hostname, globalconf.s_port)
-
+# print "Running the server at %s:%s" % (globalconf.http_hostname, globalconf.s_port)
 
 Thread(target=sync_daemon).start()
 

@@ -30,7 +30,6 @@ def generate_token(username, password, port):
 def generate_port():
     return 7000 + int(1000 * random.random())
 
-
 def start_server(hostname, port, dispatcher):
     httpd = HTTPServer((hostname, port), SOAPHandler)
     httpd.dispatcher = dispatcher

@@ -47,11 +47,10 @@ class service_interface:
         pass
 
     def setup_server(self):
-
         dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
-        dispatcher.register_function('parse_event', self.parse_event,
+        dispatcher.register_function('parse_event', lambda event_id, user_token, service_token, add_info, reply_addr: self.parse_event(event_id, user_token, service_token, add_info, reply_addr),
                                      returns={"errorcode": int},
-                                     args={"event_id": str, "user_token": str, "service_token": str, "add_info": str})
+                                     args={"event_id": str, "user_token": str, "service_token": str, "add_info": str, "reply_addr": str})
 
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
@@ -59,8 +58,8 @@ class service_interface:
         reply = self.client.register_publisher(service_name = self.service_name, port = self.port, tags = self.tags)
         self.token = reply.token
 
-    def parse_event(self, event_id, user_token, service_token, add_info):
-        self.q.put((event_id, user_token, service_token, add_info))
+    def parse_event(self, event_id, user_token, service_token, add_info, reply_addr):
+        self.q.put((event_id, user_token, service_token, add_info, reply_addr))
         return {"errorcode":globalconf.SUCCESS_CODE}
 
     # Publish info
@@ -68,8 +67,7 @@ class service_interface:
        while(True):
             try:
                 event = self.q.get(timeout=5)
-                event_id, user_token, service_token, add_info = event
-
-                self.get_connection().publish(service_token=self.token, event_id=event_id, message="UT:%s, %s, %s" % (user_token, service_token, add_info))
+                event_id, user_token, service_token, add_info, reply_addr = event
+                utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id, message="UT:%s, %s, %s" % (user_token, service_token, add_info))
             except Queue.Empty:
                 continue
