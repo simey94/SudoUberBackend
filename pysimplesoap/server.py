@@ -489,6 +489,9 @@ class SOAPHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response)
 
+    def log_message(self, format, *args):
+        # SHUTUP
+        return
 
 class WSGISOAPHandler(object):
 
