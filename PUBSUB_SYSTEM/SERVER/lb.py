@@ -91,13 +91,14 @@ def notify(user_token, hostname):
     return {"errorcode":globalconf.SUCCESS_CODE}
 
 
-def publish(service_token, user_token, event_id, message):
+def publish(service_token, user_token, event_id, message, client_message_id):
     reply_events.put(
         (
             user_token,
             service_token,
             event_id,
-            message
+            message,
+            client_message_id
         )
     )
     return {"errorcode": globalconf.SUCCESS_CODE}
@@ -168,7 +169,8 @@ def process_events():
                 user_token=user_token,
                 service_token=service_token,
                 add_info=add_info,
-                reply_addr=(globalconf.hostname % port)
+                reply_addr=(globalconf.hostname % port),
+                client_message_id=client_message_id
             )
         except Queue.Empty:
             continue
@@ -178,7 +180,7 @@ def reply_to_events():
 
     while True:
         try:
-            user_token, service_token, event_id, message = reply_events.get(timeout=5)
+            user_token, service_token, event_id, message, client_message_id = reply_events.get(timeout=5)
 
             user_token = str(user_token)
             service_token = str(service_token)
@@ -193,7 +195,7 @@ def reply_to_events():
             del processing_messages[user_token][event_id]
             print "Replying[%s] to %s(user) with %s(msg) from %s(service)" % (event_id, user_token, message, service_token)
             current_recovery[user_token].release()
-            subscribers[user_token][1].receive(message=message)
+            subscribers[user_token][1].receive(client_message_id=client_message_id, message=message)
         except Queue.Empty:
             continue
 
@@ -209,7 +211,7 @@ dispatcher.register_function('request_services', request_services, returns={"ser
 
 dispatcher.register_function('publish', publish,
                              returns={"errorcode": int},
-                             args={"service_token": str, "user_token": str, "event_id": str, "message": str})
+                             args={"service_token": str, "user_token": str, "event_id": str, "message": str, "client_message_id": int})
 
 dispatcher.register_function('service', service,
                              returns={"errorcode": int, "message_id":int},
