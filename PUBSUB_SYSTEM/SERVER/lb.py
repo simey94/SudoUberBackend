@@ -103,7 +103,7 @@ def process_events():
                 continue
 
             print "Enqueueing %s(event) to %s->%s(Service Name)" % (event_id, service_token, service_name)
-            publishers[service_token][2].parse_event(event_id="CATCATCAT", user_token=user_token, service_token=service_token, add_info=add_info, reply_addr=globalconf.hostname % port)
+            publishers[service_token][2].parse_event(event_id=event_id, user_token=user_token, service_token=service_token, add_info=add_info, reply_addr=(globalconf.hostname % port))
         except Queue.Empty:
             continue
 
