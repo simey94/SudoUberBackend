@@ -18,6 +18,7 @@ class service_interface:
         self.tags = ""
         self.q = Queue.Queue()
         self.publish_q = Queue.Queue()
+        self.last_ids = {}     # Dictionary of user_id -> last message id
         self.server_thread = None
 
     # Ping the service to find if it is still alive

@@ -1,7 +1,7 @@
 # TODO: Implement something to fetch numbers from driver and client queues in a specified radius
 def get_supply():
-    pass
+    return 15
 
 def get_demand():
-    pass
+    return 10
 

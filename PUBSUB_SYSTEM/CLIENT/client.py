@@ -49,7 +49,7 @@ while(True):
             ctoken = a_services[index]
 
         print "Requesting:", str(ctoken)
-        server_client.service(user_token=token, service_token=ctoken, additional_info="")
+        server_client.service(user_token=token, service_token=ctoken, additional_info="London")
     else:
         print "No services found."
 
