@@ -22,7 +22,7 @@ def register_publisher(service_name, port, tags):
 
     client = utils.client(globalconf.hostname % str(port))
 
-    publishers[token] = (service_name, client, globalconf.hostname % str(port))
+    publishers[token] = (token, service_name, client, globalconf.hostname % str(port))
 
     Thread(target=sync_services).start()
 
@@ -75,8 +75,8 @@ def sync_service(server_token):
     server_client.start_service_sync(sync_token=sync_token)
     for service in publishers:
         print "Syncing publisher:", service
-        service_token, _, service_link = publishers[service]
-        server_client.sync_service(sync_token=sync_token, nonce=str(i), service_token=service_token, service_link=service_link)
+        service_token, service_name, _, service_link = publishers[service]
+        server_client.sync_service(sync_token=sync_token, nonce=str(i), service_token=service_token, service_link=service_link, service_name=service_name)
         i+=1
     server_client.end_service_sync(sync_token=sync_token)
 

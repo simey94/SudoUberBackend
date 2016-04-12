@@ -11,7 +11,7 @@ from threading import Thread, Lock
 import time
 
 subscribers = {}  # user_token -> client
-publishers = {} # service_token -> (service_token, client, service_link)
+publishers = {} # service_token -> (service_token, service_name, client, service_link)
 
 events = Queue.Queue()
 publish_lock = 0
@@ -21,19 +21,16 @@ def start_service_sync(sync_token):
     if publish_lock != 0:
         return {"errorcode": globalconf.ERROR_CODE}
     publish_lock = sync_token
-    print "START SERVICE SYNC"
     return {"errorcode": globalconf.SUCCESS_CODE}
 
-def sync_service(sync_token, nonce, service_token, service_link):
+def sync_service(sync_token, nonce, service_token, service_link, service_name):
     global publish_lock, publishers
 
-    print "trying to sync", service_token
     if publish_lock != sync_token:
         return {"errorcode": globalconf.ERROR_CODE}
 
-    publishers[service_token] = (service_token, utils.client(service_link), service_link)
+    publishers[service_token] = (service_name, service_token, utils.client(service_link), service_link)
 
-    print "synced!"
     return {"errorcode": globalconf.SUCCESS_CODE}
 
 def end_service_sync(sync_token):
@@ -43,14 +40,12 @@ def end_service_sync(sync_token):
         return {"errorcode": globalconf.ERROR_CODE}
 
     publish_lock = 0
-    print "END SERVICE SYNC"
     return {"errorcode": globalconf.SUCCESS_CODE}
 
 def request_services(user_token):
     global publishers
 
-    # msg = ",".join(["(" + str(publishers[x][0]) + "|" + str(publishers[x][2]) + ")" for x in publishers])
-    msg = str(publishers)
+    msg = ",".join([ str(publishers[x][0]) for x in publishers])
     return {"services": msg}
 
 def service(user_token, service_token, additional_info):
@@ -94,7 +89,6 @@ dispatcher.register_function('publish', publish,
                              returns={"errorcode": int},
                              args={"service_token": str, "event_id": str, "message": str})
 
-
 dispatcher.register_function('notify', notify,
                              returns={"errorcode": int},
                              args={"user_token": str, "hostname": str})
@@ -105,7 +99,7 @@ dispatcher.register_function('start_service_sync', start_service_sync,
 
 dispatcher.register_function('sync_service', sync_service,
                              returns={"errorcode": int},
-                             args={"sync_token":str, "nonce": str, "service_token": str, "service_link": str})
+                             args={"sync_token":str, "nonce": str, "service_token": str, "service_link": str, "service_name": str})
 
 dispatcher.register_function('end_service_sync', end_service_sync,
                              returns={"errorcode": int},
