@@ -17,6 +17,7 @@ class service_interface:
         self.port = None
         self.tags = ""
         self.q = Queue.Queue()
+        self.publish_q = Queue.Queue()
         self.server_thread = None
 
     # Ping the service to find if it is still alive
