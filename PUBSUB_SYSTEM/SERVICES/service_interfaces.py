@@ -6,12 +6,12 @@ import global_configuration as globalconf
 import os
 import time
 
-
 class service_interface:
 
     def __init__(self):
         self.client = None
         self.token  = None
+        self.last_ids = None
         self.service_name = "CAT"
         self.port = None
         self.tags = ""
@@ -49,6 +49,31 @@ class service_interface:
 
     # Publish info
     def publish(self):
+       # if message is not None:
+       #     # Presuming messages are in format id:msg
+       #     split_msg = message.split(':')
+       #     msg_id = int(split_msg[0])
+       #     contnet = str(split_msg[1])
+       # else:
+       #     return ""
+       #
+       #  print "\n Recieved From Publisher: " , str(publisher_id), "Message: ", message
+       #
+       #  # check we got messages in order
+       # if self.last_ids[publisher_id] + 1 == int(msg_id):
+       #     pub_queue = publishers_queues[publisher_id]
+       #     pub_queue.put_message(message)
+       #     self.last_ids[publisher_id] = int(msg_id)
+       #     return "OK"
+       #
+       # # check for repetition of messages
+       # elif self.last_ids[publisher_id] == int(msg_id):
+       #     return "DUPLICATE"
+       #
+       # # Notify if messages are not in order, reject message
+       # else:
+       #     return str(self.last_ids[publisher_id])
+
        while(True):
             # wait 10 seconds before publishing
             time.sleep(globalconf.publish_interval)

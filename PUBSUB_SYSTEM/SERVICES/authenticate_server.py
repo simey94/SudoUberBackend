@@ -77,7 +77,6 @@ au.publish()
 # Crashing queues;
 # Crashing customers;
 # Increasing number of queries;
-# Mobility of users;
 # Long delays in network traffic;
 # Out of order messages;
 # If(msg_id != expected):
