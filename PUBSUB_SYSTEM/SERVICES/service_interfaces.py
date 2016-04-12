@@ -68,6 +68,7 @@ class service_interface:
             try:
                 event = self.q.get(timeout=5)
                 event_id, user_token, service_token, add_info, reply_addr = event
-                utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id, message="UT:%s, %s, %s" % (user_token, service_token, add_info))
+                message = "UT:%s, %s, %s" % (user_token, service_token, self.get_data())
+                utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id, message=message)
             except Queue.Empty:
                 continue
