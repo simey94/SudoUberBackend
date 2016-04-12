@@ -1,11 +1,19 @@
+import sys
+sys.path.append("..")
+sys.path.append("../..")
 from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
 import sqlite3
 
+
 class authentication(service_interface):
     def __init__(self):
         service_interface.__init__(self)
+
+    def authentication(self,username,password,token):
+        return self.get_data(self)
+
 
     def initiate_connection(self):
         self.client = utils.client(globalconf.location)
@@ -39,6 +47,9 @@ class authentication(service_interface):
         con = sqlite3.connect("users.db")
         return con;
 
+    def initiate_connection(self, location):
+        self.client = utils.client(location)
+
     def get_connection(self):
         return self.client
 
@@ -56,10 +67,16 @@ class authentication(service_interface):
     def recover_message(self):
         pass
 
+if len(sys.argv) > 1:
+    linker = sys.argv[1]
+else:
+    linker = globalconf.location
+
 au = authentication()
 # au.initalise_db()
 au.port = utils.generate_port()
 au.tags = "cat,dog"
-au.initiate_connection()
+au.initiate_connection(linker)
+au.setup_server()
 au.register()
 au.publish()
