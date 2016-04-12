@@ -25,17 +25,17 @@ alloc_server = response.server
 dispatcher = utils.dispatcher("Client Username:%s, Password:%s, Port:%s" % (_username, _password, _port), globalconf.hostname % str(_port))
 dispatcher.register_function('receive', receive, returns={"ack":str}, args={"message": str})
 
-print "allocated", alloc_server
-
 thread = utils.open_server_thread(globalconf.http_hostname, _port, dispatcher)
 print "ASSIGNED TOKEN:%s" % token
 
 time.sleep(5)
 
 server_client = utils.client(alloc_server)
-server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
-services = server_client.request_services(user_token=token).services
 
-print services
+server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
+while(True):
+    services = server_client.request_services(user_token=token).services
+    print "Available services", services
+    time.sleep(3)
 
 thread.join()

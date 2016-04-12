@@ -3,18 +3,21 @@ sys.path.append("../..")
 sys.path.append("..")
 
 import global_configuration as globalconf
+import global_utils as utils
 import os
 import time
-
+import Queue
 
 class service_interface:
 
     def __init__(self):
         self.client = None
         self.token  = None
-        self.service_name = "CAT"
+        self.service_name = utils.generate_server_token()
         self.port = None
         self.tags = ""
+        self.q = Queue.Queue()
+        self.server_thread = None
 
     # Ping the service to find if it is still alive
     def ping_service(hostname):
@@ -43,15 +46,30 @@ class service_interface:
         """ recovers messages that may be lost from queue """
         pass
 
+    def setup_server(self):
+
+        dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
+        dispatcher.register_function('parse_event', self.parse_event,
+                                     returns={"errorcode": int},
+                                     args={"event_id": str, "user_token": str, "service_token": str, "add_info": str})
+
+        self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
+
     def register(self):
         reply = self.client.register_publisher(service_name = self.service_name, port = self.port, tags = self.tags)
         self.token = reply.token
 
+    def parse_event(self, event_id, user_token, service_token, add_info):
+        self.q.put((event_id, user_token, service_token, add_info))
+        return {"errorcode":globalconf.SUCCESS_CODE}
+
     # Publish info
     def publish(self):
        while(True):
-            # wait 10 seconds before publishing
-            time.sleep(globalconf.publish_interval)
-            # publish to server
-            connection = self.get_connection()
-            reply = connection.publish(service_token=self.token, message=self.get_data())
+            try:
+                event = self.q.get(timeout=5)
+                event_id, user_token, service_token, add_info = event
+
+                self.get_connection().publish(service_token=self.token, event_id=event_id, message="UT:%s, %s, %s" % (user_token, service_token, add_info))
+            except Queue.Empty:
+                continue

@@ -55,5 +55,6 @@ pc = price_calculator()
 pc.port = utils.generate_port()
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
+pc.setup_server()
 pc.register()
 pc.publish()
