@@ -65,10 +65,13 @@ class price_calculator(service_interface):
     def get_connection(self):
         return self.client
 
+    def get_demand(self):
+        return self.q.queue.__sizeof__()
+
     def get_data(self, location):
         # Get supply and Demand from other component
         supply = demand_service.get_supply()
-        demand = demand_service.get_demand()
+        demand = self.get_demand()
         return self.price_calculation(supply, demand, str(location))
         # return self.price_calculation(10, 12, "London")
 
