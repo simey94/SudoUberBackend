@@ -27,18 +27,21 @@ def start_service_sync(sync_token):
 def sync_service(sync_token, nonce, service_token, service_link):
     global publish_lock, publishers
 
+    print "trying to sync", service_token
     if publish_lock != sync_token:
         return {"errorcode": globalconf.ERROR_CODE}
 
     publishers[service_token] = (service_token, utils.client(service_link), service_link)
 
+    print "synced!"
     return {"errorcode": globalconf.SUCCESS_CODE}
 
 def end_service_sync(sync_token):
     global publish_lock
 
-    if publish_lock != 0:
+    if publish_lock != sync_token:
         return {"errorcode": globalconf.ERROR_CODE}
+
     publish_lock = 0
     print "END SERVICE SYNC"
     return {"errorcode": globalconf.SUCCESS_CODE}
