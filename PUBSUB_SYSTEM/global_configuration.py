@@ -16,6 +16,9 @@ http_hostname = ""
 publish_interval = 5
 connection_threashold = 4
 
+event_recovery_threashold = 60
+event_recovery_sleep_time = 30
+
 """Response patterns"""
 subscribe_return_pattern = {'response': {"subscriber_id": str}}
 subscribe_arg_pattern = {'username': str, 'password': str}
@@ -25,3 +28,4 @@ poll_arg_pattern = {'token': str, 'query': str}
 
 SUCCESS_CODE = 0
 ERROR_CODE = 1
+REPETITION_CODE = 2

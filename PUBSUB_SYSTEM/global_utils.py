@@ -1,6 +1,6 @@
 """Utilities by the server"""
 
-import random
+from random import random, SystemRandom
 import string
 from BaseHTTPServer import HTTPServer
 from threading import Thread
@@ -10,7 +10,7 @@ from pysimplesoap.server import SoapDispatcher, SOAPHandler
 
 
 def random_string(N):
-    return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
+    return ''.join(SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(N))
 
 def generate_username():
     return random_string(5)
@@ -19,7 +19,7 @@ def generate_password():
     return random_string(6)
 
 def generate_port(token):
-    return 8000 + int(50 * random.random())
+    return 8100 + int(500 * random())
 
 def generate_server_token():
     return random_string(10)
@@ -28,7 +28,7 @@ def generate_token(username, password, port):
     return str(username)+str(password)+str(port)
 
 def generate_port():
-    return 7000 + int(1000 * random.random())
+    return 7000 + int(1000 * random())
 
 def start_server(hostname, port, dispatcher):
     httpd = HTTPServer((hostname, port), SOAPHandler)
