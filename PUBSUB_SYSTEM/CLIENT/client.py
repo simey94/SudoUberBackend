@@ -8,7 +8,7 @@ import global_utils as utils
 import time
 from random import randint, random
 
-mfile = open(random(), "w")
+mfile = open("accuracy" + str(globalconf.accuracy), "w")
 
 def receive(client_message_id, message, outfile):
     now = time.time()
@@ -63,7 +63,7 @@ while(True):
             message_id = int(response.message_id)
         else:
             messages[message_id] = time_sent
-            if random() > 0.8:
+            if random() > globalconf.accuracy:
                 message_id += randint(1, 7)
             else:
                 message_id += 1
