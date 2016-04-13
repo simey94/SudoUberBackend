@@ -10,16 +10,17 @@ import Queue
 class service_interface:
 
     def __init__(self):
-        self.client = None
+
         self.token  = None
         self.service_name = utils.generate_server_token()
+        print "SERVICE NAME", self.service_name
         self.port = None
         self.tags = ""
         self.q = Queue.Queue()
         self.publish_q = Queue.Queue()
         self.last_ids = {}     # Dictionary of user_id -> last message id from a client
         self.received_message_ids = [] # List of all recieved client ID messages
-        self.server_thread = None
+
 
     # Ping the service to find if it is still alive
     def ping_service(hostname):
@@ -36,6 +37,12 @@ class service_interface:
         """returns a client conenction to the server   """
         pass
 
+    def enqueue(self):
+        pass
+
+    def dequeue(self):
+        pass
+
     def get_connection(self):
         """returns a connection to the server  for the client passed int  """
         pass
@@ -49,21 +56,10 @@ class service_interface:
         pass
 
     def setup_server(self):
-        dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
-        dispatcher.register_function('parse_event',
-                                     lambda event_id, user_token, service_token, add_info, reply_addr, client_message_id: self.parse_event(event_id, user_token, service_token, add_info, reply_addr, client_message_id),
-                                     returns={"errorcode": int},
-                                     args={"event_id": str, "user_token": str, "service_token": str, "add_info": str, "reply_addr": str, "client_message_id": str})
-
-        dispatcher.register_function('get_demand',
-                                     lambda : self.get_demand(),
-                                     returns={"demand": int},
-                                     args={}
-                                     )
-
-        self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
+        pass
 
     def get_demand(self):
+        print "IN DEMAND"
         return {"demand": int(self.q.qsize())}
 
     def register(self):

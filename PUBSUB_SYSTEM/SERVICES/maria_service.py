@@ -1,34 +1,43 @@
 import sys
+sys.path.append("..")
 sys.path.append("../..")
+import timing_service
+import holidays
 
 from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
 
-
-from pywwo import *
-
-
-class weather_forecaster(service_interface):
+class price_calculator(service_interface):
 
     def __init__(self):
         service_interface.__init__(self)
         self.client = None
         self.server_thread = None
 
-    def get_degrees_c(self, location):
-        setKey('<45a7v53q9qaveabsekth9ucc>', 'free')
-        w = LocalWeather(location)
-        # print w.data.current_condition.temp_C
-        return w.data.current_condition.temp_C
 
+    def price_calculation(self, demand, supply, location):
+        journeyPrice = 1.00
+
+
+
+        degreesC = 12
+        currentDateTime = timing_service.timing_pricing()
+        us_holidays = holidays.UnitedStates()
+
+        if currentDateTime.date() in us_holidays:
+            journeyPrice *= 1.2
+        if demand > supply:
+            journeyPrice *= 1.2
+        if degreesC > 15:
+            journeyPrice *= 1.2
+        elif degreesC > 20:
+            journeyPrice *= 1.5
+
+        return journeyPrice
 
     def initiate_connection(self, location):
         self.client = utils.client(location)
-
-
-    def get_connection(self):
-        return self.client
 
     def setup_server(self):
         dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
@@ -46,28 +55,37 @@ class weather_forecaster(service_interface):
                                      returns={"demand": int},
                                      args={}
                                      )
-        # IT BREAKS HERE!!!!!
-        response = self.client.blabla()
-        print response
-
+        dispatcher.register_function('blabla',
+                                     lambda : self.enqueue_helper(),
+                                     returns={"location": str},
+                                     args={}
+                                     )
+        print self.client
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
     def enqueue(self):
-        # use a global variable to go to getDegress and return int
+        # send location to the weather
+        #dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
+
+        print self.service_name
+        print self.port
         print "ENQUEUE"
-        pass
+
+
+    def enqueue_helper(self):
+        print "In new eqneue"
+        return {"location": "Moscow"}
 
     def dequeue(self):
-        # extract the city location to a global variable
-
-
-        #dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
-        #dispatcher.register_function('dequeue', self.enqueue_helper(), returns={"location": str})
+        # receive degrees back
         print "DEQUEUE"
         pass
 
+    def get_connection(self):
+        return self.client
+
     def get_data(self):
-        return self.get_degrees_c("Moscow")
+        return self.price_calculation(10, 12, "London")
 
     def recover_message(self):
         pass
@@ -77,12 +95,12 @@ if len(sys.argv) > 1:
 else:
     linker = globalconf.location
 
-pc = weather_forecaster()
+pc = price_calculator()
 pc.port = utils.generate_port()
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
 #HERE
-#pc.dequeue()
+#pc.enqueue()
 pc.setup_server()
 pc.register()
 

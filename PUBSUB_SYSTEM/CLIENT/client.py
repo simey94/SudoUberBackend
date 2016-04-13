@@ -10,6 +10,7 @@ from random import randint, random
 
 def receive(client_message_id, message):
     now = time.time()
+    print "Message:", message
     print "Reply time:", (now-messages[int(client_message_id)])
     return {"ack": "I feel the bern"}
 
