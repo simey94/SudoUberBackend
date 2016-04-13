@@ -22,9 +22,13 @@ class weather_forecaster(service_interface):
         # print w.data.current_condition.temp_C
         return w.data.current_condition.temp_C
 
+    def get_T(self, location):
+        print location
+        print "HERE"
+        setKey('<45a7v53q9qaveabsekth9ucc>', 'free')
+        w = LocalWeather(location)
+        return w.data.current_condition.temp_C
 
-    def get_temperature(self):
-        return {"temperature" : self.temperature}
 
     def initiate_connection(self, location):
         self.client = utils.client(location)
@@ -49,33 +53,13 @@ class weather_forecaster(service_interface):
                                      args={}
                                      )
 
-
-        client1 = utils.client(globalconf.hostname % 5000)
-        response = client1.blabla()
-        print response.location
-        yo = self.get_degrees_c(response.location)
-        print yo
-
-        self.temperature = yo
-
+        dispatcher.register_function('get_T',
+                                     lambda location: self.get_T(location),
+                                     returns={"temperature": int},
+                                     args={"location": str}
+                                     )
 
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
-
-    def enqueue(self):
-        # use a global variable to go to getDegress and return int
-        print "ENQUEUE"
-        pass
-
-    def dequeue(self):
-        print "DEQUEE"
-        dispatcher = utils.dispatcher("%s:%s" % (self.service_name, 9000), globalconf.hostname % 9000)
-        dispatcher.register_function('get_temperature',
-                                     lambda: self.get_temperature(),
-                                     returns={"temperature": int},
-                                     args={}
-                                     )
-        self.server_thread = utils.open_server_thread(globalconf.http_hostname, 9000, dispatcher)
-
 
 
     def get_data(self):
@@ -90,10 +74,9 @@ else:
     linker = globalconf.location
 
 pc = weather_forecaster()
-pc.port = utils.generate_port()
+pc.port = 5000
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
 pc.setup_server()
-pc.dequeue()
 pc.register()
 pc.publish()

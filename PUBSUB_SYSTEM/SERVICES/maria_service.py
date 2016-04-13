@@ -54,31 +54,13 @@ class price_calculator(service_interface):
                                      returns={"demand": int},
                                      args={}
                                      )
-        dispatcher.register_function('blabla',
-                                     lambda : self.enqueue_helper(),
-                                     returns={"location": str},
-                                     args={}
-                                     )
+
+        client1 = utils.client(globalconf.hostname % 5000)
+        response = client1.get_T(location="Moscow")
+        print response.temperature
+
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
-
-
-    def enqueue(self):
-        print self.service_name
-        print self.port
-        print "ENQUEUE"
-
-
-    def enqueue_helper(self):
-        print "In new eqneue"
-        return {"location": "Moscow"}
-
-    def dequeue(self):
-        # receive degrees back
-        time.sleep(5)
-        client1 = utils.client(globalconf.hostname % 9000)
-        response = client1.get_temperature()
-        print response.temperature
 
     def get_connection(self):
         return self.client
@@ -95,12 +77,11 @@ else:
     linker = globalconf.location
 
 pc = price_calculator()
-pc.port = 5000
+pc.port = utils.generate_port()
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
 
 pc.setup_server()
 pc.register()
-pc.dequeue()
 pc.publish()
 
