@@ -48,6 +48,7 @@ class price_calculator(service_interface):
                                      args={"event_id": str, "user_token": str, "service_token": str, "add_info": str,
                                            "reply_addr": str, "client_message_id": str})
 
+
         dispatcher.register_function('get_demand',
                                      lambda: self.get_demand(),
                                      returns={"demand": int},
@@ -58,16 +59,11 @@ class price_calculator(service_interface):
                                      returns={"location": str},
                                      args={}
                                      )
-
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
 
 
-
     def enqueue(self):
-        # send location to the weather
-        #dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
-
         print self.service_name
         print self.port
         print "ENQUEUE"
@@ -79,12 +75,10 @@ class price_calculator(service_interface):
 
     def dequeue(self):
         # receive degrees back
-        time.sleep(10)
+        time.sleep(5)
         client1 = utils.client(globalconf.hostname % 9000)
         response = client1.get_temperature()
         print response.temperature
-
-
 
     def get_connection(self):
         return self.client
@@ -106,7 +100,7 @@ pc.tags = "cat,dog"
 pc.initiate_connection(linker)
 
 pc.setup_server()
-pc.dequeue()
 pc.register()
-
+pc.dequeue()
 pc.publish()
+

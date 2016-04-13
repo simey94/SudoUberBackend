@@ -77,6 +77,7 @@ class weather_forecaster(service_interface):
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, 9000, dispatcher)
 
 
+
     def get_data(self):
         return self.get_degrees_c("Moscow")
 

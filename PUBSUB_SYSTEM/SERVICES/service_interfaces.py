@@ -63,6 +63,7 @@ class service_interface:
         return {"demand": int(self.q.qsize())}
 
     def register(self):
+        print "REGISTER"
         reply = self.client.register_publisher(service_name = self.service_name, port = self.port, tags = self.tags)
         self.token = reply.token
 
@@ -77,15 +78,16 @@ class service_interface:
         :param client_message_id: The id assigned by the client
         :return: acknowledgement
         """
+        print "ADD INFO", add_info
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
-        return {"errorcode":globalconf.SUCCESS_CODE}
+        return {"errorcode": globalconf.SUCCESS_CODE}
 
     # Publish info
     def publish(self):
         """The publishing of the events from the queue to the load balancer"""
         while(True):
             try:
-                event = self.q.get(timeout=5)
+                event = self.q.get(timeout=10)
                 event_id, user_token, service_token, add_info, reply_addr, client_message_id = event
                 message = "UT:%s, %s, %s" % (user_token, service_token, self.get_data())
                 utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id, message=message, client_message_id=client_message_id)
