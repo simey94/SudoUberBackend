@@ -7,6 +7,7 @@ import holidays
 from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
+import time
 
 class price_calculator(service_interface):
 
@@ -61,6 +62,8 @@ class price_calculator(service_interface):
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
 
+
+
     def enqueue(self):
         # send location to the weather
         #dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
@@ -76,8 +79,12 @@ class price_calculator(service_interface):
 
     def dequeue(self):
         # receive degrees back
-        print "DEQUEUE"
-        pass
+        time.sleep(10)
+        client1 = utils.client(globalconf.hostname % 9000)
+        response = client1.get_temperature()
+        print response.temperature
+
+
 
     def get_connection(self):
         return self.client
@@ -97,9 +104,9 @@ pc = price_calculator()
 pc.port = 5000
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
-#HERE
-#pc.enqueue()
+
 pc.setup_server()
+pc.dequeue()
 pc.register()
 
 pc.publish()

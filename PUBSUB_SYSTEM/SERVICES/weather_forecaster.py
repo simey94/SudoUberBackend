@@ -14,6 +14,7 @@ class weather_forecaster(service_interface):
     def __init__(self):
         service_interface.__init__(self)
         self.server_thread = None
+        self.temperature = None
 
     def get_degrees_c(self, location):
         setKey('<45a7v53q9qaveabsekth9ucc>', 'free')
@@ -21,6 +22,9 @@ class weather_forecaster(service_interface):
         # print w.data.current_condition.temp_C
         return w.data.current_condition.temp_C
 
+
+    def get_temperature(self):
+        return {"temperature" : self.temperature}
 
     def initiate_connection(self, location):
         self.client = utils.client(location)
@@ -52,6 +56,9 @@ class weather_forecaster(service_interface):
         yo = self.get_degrees_c(response.location)
         print yo
 
+        self.temperature = yo
+
+
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
     def enqueue(self):
@@ -60,13 +67,15 @@ class weather_forecaster(service_interface):
         pass
 
     def dequeue(self):
-        # extract the city location to a global variable
+        print "DEQUEE"
+        dispatcher = utils.dispatcher("%s:%s" % (self.service_name, 9000), globalconf.hostname % 9000)
+        dispatcher.register_function('get_temperature',
+                                     lambda: self.get_temperature(),
+                                     returns={"temperature": int},
+                                     args={}
+                                     )
+        self.server_thread = utils.open_server_thread(globalconf.http_hostname, 9000, dispatcher)
 
-
-        #dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
-        #dispatcher.register_function('dequeue', self.enqueue_helper(), returns={"location": str})
-        print "DEQUEUE"
-        pass
 
     def get_data(self):
         return self.get_degrees_c("Moscow")
@@ -84,5 +93,6 @@ pc.port = utils.generate_port()
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
 pc.setup_server()
+pc.dequeue()
 pc.register()
 pc.publish()
