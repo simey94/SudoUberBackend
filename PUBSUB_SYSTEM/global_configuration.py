@@ -29,3 +29,4 @@ poll_arg_pattern = {'token': str, 'query': str}
 SUCCESS_CODE = 0
 ERROR_CODE = 1
 REPETITION_CODE = 2
+OUT_OF_ORDER_CODE = 3
