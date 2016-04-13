@@ -44,11 +44,11 @@ server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
 messages = {}
 message_id = 1
 while(True):
-#    print "Looking for available services..."
+    #    print "Looking for available services..."
     services = str(server_client.request_services(user_token=token).services)
 
     if services != "":
-#       print "Services:", services
+        #       print "Services:", services
         a_services = services.split(",")
 
         if len(a_services) == 1:
@@ -57,7 +57,7 @@ while(True):
             index = randint(0, len(a_services)-1)
             ctoken = a_services[index]
 
-#        print "Requesting:", str(ctoken)
+        #        print "Requesting:", str(ctoken)
         time_sent = time.time()
         response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="London")
 
@@ -70,7 +70,8 @@ while(True):
             else:
                 message_id += 1
     else:
-#        print "No services found."
+        #        print "No services found."
+        pass
 
     time.sleep(3)
     print "-"*10
