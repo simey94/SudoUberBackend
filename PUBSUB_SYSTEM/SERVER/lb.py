@@ -18,8 +18,9 @@ subscribers_last_message_id = defaultdict(int) # user_token -> last id
 subscribers_last_event_id = defaultdict(int) # user_token -> last generated event id
 
 processing_messages = defaultdict(dict) # user_token -> event_id -> tuple
-
 name_publisher = defaultdict(list)
+
+current_recovery = defaultdict(Lock) # user_token -> Lock
 
 events = Queue.Queue() # (user_token, service_token, add_info)
 reply_events = Queue.Queue() # (user_token, service_token, event_id, message)
@@ -64,9 +65,11 @@ def request_services(user_token):
     return {"services": msg}
 
 def service(client_message_id, user_token, service_token, additional_info):
+
     if (subscribers_last_message_id[user_token] + 1) != client_message_id:
         print "Wrong client_id"
         return {"errorcode": globalconf.REPETITION_CODE, "message_id": subscribers_last_message_id[user_token] + 1}
+
     events.put(
         (
             user_token,
@@ -88,47 +91,53 @@ def notify(user_token, hostname):
     return {"errorcode":globalconf.SUCCESS_CODE}
 
 
-def publish(service_token, user_token, event_id, message):
+def publish(service_token, user_token, event_id, message, client_message_id):
     reply_events.put(
         (
             user_token,
             service_token,
             event_id,
-            message
+            message,
+            client_message_id
         )
     )
     return {"errorcode": globalconf.SUCCESS_CODE}
 
 
 def pick_service(service_name):
-    #TODO: add pick based on load
     if service_name not in name_publisher:
         return None
     else:
-        services = name_publisher[service_name]
+        services = name_publisher[service_name][:]
         if len(services) == 0:
             return None
         elif len(services) == 1:
             return services[0]
         else:
-            index = randint(0, len(services)-1)
-
-            return services[index]
+            services.sort(key=lambda service_token: int(publishers[service_token][2].get_demand().demand))
+            return services[0]
 
 def recover(user_token, service_name, add_info, client_message_id):
+    global events
+
     events.put((user_token, service_name, add_info, client_message_id))
 
 def event_recovery():
+    global processing_messages, current_recovery
+
     while(True):
         time.sleep(globalconf.event_recovery_sleep_time)
         now = time.time()
         for user_token in processing_messages:
-            for message in processing_messages[user_token]:
-                if (now-(message[4])) > globalconf.event_recovery_threashold:
+            current_recovery[user_token].acquire()
+            for event_id in processing_messages[user_token]:
+                message = processing_messages[user_token][event_id]
+                if (now-message[4]) > globalconf.event_recovery_threashold:
                     user_token, service_name, add_info, client_message_id, _ = message
+                    del processing_messages[user_token][event_id]
                     recover(user_token, service_name, add_info, client_message_id)
-
-
+                    break
+            current_recovery[user_token].release()
 
 def process_events():
     global processing_messages, subscribers_last_event_id, events
@@ -138,23 +147,21 @@ def process_events():
             continue
         try:
             user_token, service_name, add_info, client_message_id = events.get(timeout=5)
+            service_token = pick_service(service_name)
+            if service_token is None:
+                print "NOT FOUND SERVICE"
+                continue
 
             event_id = subscribers_last_event_id[user_token]
             subscribers_last_event_id[user_token] += 1
 
             processing_messages[str(user_token)][str(event_id)] = (
-                    user_token,
-                    service_name,
-                    add_info,
-                    client_message_id,
-                    time.time()
-                 )
-
-            service_token = pick_service(service_name)
-
-            if service_token is None:
-                print "NOT FOUND SERVICE"
-                continue
+                user_token,
+                service_name,
+                add_info,
+                client_message_id,
+                time.time()
+            )
 
             print "Enqueueing %s(event) to %s->%s(Service Name)" % (event_id, service_token, service_name)
             publishers[service_token][2].parse_event(
@@ -162,28 +169,35 @@ def process_events():
                 user_token=user_token,
                 service_token=service_token,
                 add_info=add_info,
-                reply_addr=(globalconf.hostname % port)
+                reply_addr=(globalconf.hostname % port),
+                client_message_id=client_message_id
             )
         except Queue.Empty:
             continue
 
 def reply_to_events():
-    global processing_messages, reply_events, subscribers
+    global processing_messages, reply_events, subscribers, current_recovery
 
     while True:
         try:
-            user_token, service_token, event_id, message = reply_events.get(timeout=5)
+            user_token, service_token, event_id, message, client_message_id = reply_events.get(timeout=5)
 
-            if str(event_id) not in processing_messages[user_token]:
+            user_token = str(user_token)
+            service_token = str(service_token)
+            event_id = str(event_id)
+            message = str(message)
+
+            if event_id not in processing_messages[user_token]:
                 print "Message replay"
-                continue;
+                continue
 
-            del processing_messages[user_token][str(event_id)]
-            print "Replying[%s] to %s(user) with %s(msg)" % (event_id, user_token, message)
-            subscribers[user_token][1].receive(message=message)
+            current_recovery[user_token].acquire()
+            del processing_messages[user_token][event_id]
+            print "Replying[%s] to %s(user) with %s(msg) from %s(service)" % (event_id, user_token, message, service_token)
+            current_recovery[user_token].release()
+            subscribers[user_token][1].receive(client_message_id=client_message_id, message=message)
         except Queue.Empty:
             continue
-
 
 if len(sys.argv) < 2:
     port = utils.generate_port()
@@ -197,7 +211,7 @@ dispatcher.register_function('request_services', request_services, returns={"ser
 
 dispatcher.register_function('publish', publish,
                              returns={"errorcode": int},
-                             args={"service_token": str, "user_token": str, "event_id": str, "message": str})
+                             args={"service_token": str, "user_token": str, "event_id": str, "message": str, "client_message_id": int})
 
 dispatcher.register_function('service', service,
                              returns={"errorcode": int, "message_id":int},

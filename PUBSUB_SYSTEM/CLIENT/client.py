@@ -8,8 +8,9 @@ import global_utils as utils
 import time
 from random import randint, random
 
-def receive(message):
-    print "ANSWER:", message
+def receive(client_message_id, message):
+    now = time.time()
+    print "Reply time:", (now-messages[int(client_message_id)])
     return {"ack": "I feel the bern"}
 
 _username = utils.generate_username()
@@ -24,7 +25,7 @@ token = response.token
 alloc_server = response.server
 
 dispatcher = utils.dispatcher("Client Username:%s, Password:%s, Port:%s" % (_username, _password, _port), globalconf.hostname % str(_port))
-dispatcher.register_function('receive', receive, returns={"ack":str}, args={"message": str})
+dispatcher.register_function('receive', receive, returns={"ack":str}, args={"client_message_id": int, "message": str})
 
 thread = utils.open_server_thread(globalconf.http_hostname, _port, dispatcher)
 print "ASSIGNED TOKEN:%s" % token
@@ -35,6 +36,7 @@ server_client = utils.client(alloc_server)
 
 server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
 
+messages = {}
 message_id = 1
 while(True):
     print "Looking for available services..."
@@ -51,12 +53,13 @@ while(True):
             ctoken = a_services[index]
 
         print "Requesting:", str(ctoken)
-
+        time_sent = time.time()
         response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="London")
 
         if int(response.errorcode) == globalconf.REPETITION_CODE:
             message_id = int(response.message_id)
         else:
+            messages[message_id] = time_sent
             if random() > 0.8:
                 message_id += randint(1, 7)
             else:
