@@ -13,7 +13,6 @@ class weather_forecaster(service_interface):
 
     def __init__(self):
         service_interface.__init__(self)
-        self.client = None
         self.server_thread = None
 
     def get_degrees_c(self, location):
@@ -25,7 +24,6 @@ class weather_forecaster(service_interface):
 
     def initiate_connection(self, location):
         self.client = utils.client(location)
-
 
     def get_connection(self):
         return self.client
@@ -47,7 +45,9 @@ class weather_forecaster(service_interface):
                                      args={}
                                      )
 
-        response = self.client.blabla()
+
+        client1 = utils.client(globalconf.hostname % 5000)
+        response = client1.blabla()
         print response.location
         yo = self.get_degrees_c(response.location)
         print yo
@@ -80,15 +80,9 @@ else:
     linker = globalconf.location
 
 pc = weather_forecaster()
-pc.port = 6000
-
+pc.port = utils.generate_port()
 pc.tags = "cat,dog"
-linker = globalconf.hostname % 5000
-#print linker
 pc.initiate_connection(linker)
-#HERE
-#pc.dequeue()
 pc.setup_server()
-#pc.register()
-
-#pc.publish()
+pc.register()
+pc.publish()

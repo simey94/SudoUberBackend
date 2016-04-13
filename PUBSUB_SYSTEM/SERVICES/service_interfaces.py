@@ -10,7 +10,7 @@ import Queue
 class service_interface:
 
     def __init__(self):
-
+        self.client = None
         self.token  = None
         self.service_name = utils.generate_server_token()
         print "SERVICE NAME", self.service_name

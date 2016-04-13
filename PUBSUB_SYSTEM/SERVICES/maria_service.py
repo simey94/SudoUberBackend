@@ -12,14 +12,11 @@ class price_calculator(service_interface):
 
     def __init__(self):
         service_interface.__init__(self)
-        self.client = None
         self.server_thread = None
 
 
     def price_calculation(self, demand, supply, location):
         journeyPrice = 1.00
-
-
 
         degreesC = 12
         currentDateTime = timing_service.timing_pricing()
