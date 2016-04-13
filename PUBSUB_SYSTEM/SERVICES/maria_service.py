@@ -14,23 +14,26 @@ class price_calculator(service_interface):
     def __init__(self):
         service_interface.__init__(self)
         self.server_thread = None
+        self.current_temperature = None
 
 
-    def price_calculation(self, demand, supply, location):
+    def price_calculation(self, demand, supply):
         journeyPrice = 1.00
 
-        degreesC = 12
+        degreesC = self.current_temperature
         currentDateTime = timing_service.timing_pricing()
         us_holidays = holidays.UnitedStates()
 
+        print degreesC
+        print degreesC > 15
         if currentDateTime.date() in us_holidays:
-            journeyPrice *= 1.2
-        if demand > supply:
-            journeyPrice *= 1.2
-        if degreesC > 15:
-            journeyPrice *= 1.2
-        elif degreesC > 20:
             journeyPrice *= 1.5
+        if demand > supply:
+            journeyPrice *= 1.6
+        if degreesC > 15:
+            journeyPrice *= 1.7
+        elif degreesC > 20:
+            journeyPrice *= 1.8
 
         return journeyPrice
 
@@ -48,25 +51,30 @@ class price_calculator(service_interface):
                                      args={"event_id": str, "user_token": str, "service_token": str, "add_info": str,
                                            "reply_addr": str, "client_message_id": str})
 
-
         dispatcher.register_function('get_demand',
                                      lambda: self.get_demand(),
                                      returns={"demand": int},
                                      args={}
                                      )
 
-        client1 = utils.client(globalconf.hostname % 5000)
-        response = client1.get_T(location="Moscow")
-        print response.temperature
-
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
+
+    def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
+        time.sleep(5)
+        print "HERE", add_info
+        client1 = utils.client(globalconf.hostname % 5000)
+        response = client1.get_T(location=str(add_info))
+        print response.temperature
+        self.current_temperature = int(response.temperature)
+        self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
+        return {"errorcode": globalconf.SUCCESS_CODE}
 
 
     def get_connection(self):
         return self.client
 
     def get_data(self):
-        return self.price_calculation(10, 12, "London")
+        return self.price_calculation(10, 12)
 
     def recover_message(self):
         pass
