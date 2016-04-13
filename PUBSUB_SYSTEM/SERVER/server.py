@@ -18,6 +18,13 @@ publishers = {}  # service_token -> (name, client, link)
 servers_allocations = defaultdict(int)  # lb_token -> number of clients allocated
 
 def register_publisher(service_name, port, tags):
+    """
+    Handle the requests from publishers to the register.
+    :param service_name: name of the service
+    :param port: the port
+    :param tags: tags of the services
+    :return: ack
+    """
     token = utils.generate_token(service_name, service_name, port)
 
     client = utils.client(globalconf.hostname % str(port))
@@ -78,6 +85,13 @@ def sync_service(server_token):
     server_client.end_service_sync(sync_token=sync_token)
 
 def subscribe(username, password, port):
+    """
+    Subscribe to the server.
+    :param username: username
+    :param password: password
+    :param port: port
+    :return: token and the server
+    """
     token = utils.generate_token(username, password, port)
 
     server_token = alloc_server()
