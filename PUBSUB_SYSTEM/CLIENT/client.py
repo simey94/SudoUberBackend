@@ -8,9 +8,12 @@ import global_utils as utils
 import time
 from random import randint, random
 
-def receive(client_message_id, message):
+mfile = open(random(), "w")
+
+def receive(client_message_id, message, outfile):
     now = time.time()
-    print "Reply time:", (now-messages[int(client_message_id)])
+    # print "Reply time:", (now-messages[int(client_message_id)])
+    outfile.write(now-messages[int(client_message_id)])
     return {"ack": "I feel the bern"}
 
 _username = utils.generate_username()
@@ -25,7 +28,7 @@ token = response.token
 alloc_server = response.server
 
 dispatcher = utils.dispatcher("Client Username:%s, Password:%s, Port:%s" % (_username, _password, _port), globalconf.hostname % str(_port))
-dispatcher.register_function('receive', receive, returns={"ack":str}, args={"client_message_id": int, "message": str})
+dispatcher.register_function('receive', lambda client_message_id, message: receive(client_message_id=client_message_id, message=message, outfile=mfile), returns={"ack":str}, args={"client_message_id": int, "message": str})
 
 thread = utils.open_server_thread(globalconf.http_hostname, _port, dispatcher)
 print "ASSIGNED TOKEN:%s" % token
