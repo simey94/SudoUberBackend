@@ -60,8 +60,9 @@ class price_calculator(service_interface):
                                      returns={"location": str},
                                      args={}
                                      )
-        print self.client
+
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
+
 
     def enqueue(self):
         # send location to the weather
@@ -96,7 +97,7 @@ else:
     linker = globalconf.location
 
 pc = price_calculator()
-pc.port = utils.generate_port()
+pc.port = 5000
 pc.tags = "cat,dog"
 pc.initiate_connection(linker)
 #HERE

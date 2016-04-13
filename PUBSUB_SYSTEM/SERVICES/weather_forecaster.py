@@ -46,9 +46,11 @@ class weather_forecaster(service_interface):
                                      returns={"demand": int},
                                      args={}
                                      )
-        # IT BREAKS HERE!!!!!
+
         response = self.client.blabla()
-        print response
+        print response.location
+        yo = self.get_degrees_c(response.location)
+        print yo
 
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
@@ -78,12 +80,15 @@ else:
     linker = globalconf.location
 
 pc = weather_forecaster()
-pc.port = utils.generate_port()
+pc.port = 6000
+
 pc.tags = "cat,dog"
+linker = globalconf.hostname % 5000
+#print linker
 pc.initiate_connection(linker)
 #HERE
 #pc.dequeue()
 pc.setup_server()
-pc.register()
+#pc.register()
 
-pc.publish()
+#pc.publish()
