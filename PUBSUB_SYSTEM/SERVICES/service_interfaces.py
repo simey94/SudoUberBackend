@@ -23,7 +23,7 @@ class service_interface:
 
 
     # Ping the service to find if it is still alive
-    def ping_service(hostname):
+    def ping_service(self, hostname):
         response = os.system("ping -c 1 " + hostname)
 
         if response == 0:
@@ -32,6 +32,18 @@ class service_interface:
         else:
             print hostname, 'is down!'
             return False
+
+    def ping(host):
+        """
+        Returns True if host responds to a ping request
+        """
+        import os, platform
+
+        # Ping parameters as function of OS
+        ping_str = "-n 1" if platform.system().lower() == "windows" else "-c 1"
+
+        # Ping
+        return os.system("ping " + ping_str + " " + host) == 0
 
     def initiate_connection(self, location):
         """returns a client conenction to the server   """

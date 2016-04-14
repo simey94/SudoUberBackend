@@ -15,6 +15,7 @@ class weather_forecaster(service_interface):
         service_interface.__init__(self)
         self.server_thread = None
         self.current_temperature = None
+        self.recieved_msg_ids = []
 
     def get_T(self, location):
         print "Getting...", location
@@ -55,12 +56,16 @@ class weather_forecaster(service_interface):
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
-        print "Weather parser event", add_info
-        t = self.get_T(str(add_info))
-        print "Temperature in %s : %s" % (add_info, t)
-        self.current_temperature = int(t)
-        self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
-        return {"errorcode": globalconf.SUCCESS_CODE}
+        if (self.recieved_msg_ids).__contains__(client_message_id):
+            print "DUPLICATE MSG Recieved"
+            return {"errorcode": globalconf.SUCCESS_CODE}
+        else:
+            print "Weather parser event", add_info
+            t = self.get_T(str(add_info))
+            print "Temperature in %s : %s" % (add_info, t)
+            self.current_temperature = int(t)
+            self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
+            return {"errorcode": globalconf.SUCCESS_CODE}
 
     def get_data(self):
         return self.current_temperature
