@@ -9,6 +9,7 @@ import global_configuration as globalconf
 from threading import Thread, Lock
 from collections import defaultdict
 import time
+from random import random
 
 subscribers = {}  # user_token -> (user_token, utils.client(hostname), hostname)
 publishers = {} # service_token -> (service_token, service_name, client, service_link)
@@ -195,6 +196,9 @@ def process_events():
                 client_message_id,
                 time.time()
             )
+
+            if random() > globalconf.REPETITION_CODE:
+                continue
 
             #print "Enqueueing %s(event) to %s->%s(Service Name)" % (event_id, service_token, service_name)
             publishers[service_token][2].parse_event(

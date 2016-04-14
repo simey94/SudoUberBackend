@@ -13,7 +13,7 @@ hostname = "http://localhost:%s"
 http_hostname = ""
 
 publish_interval = 5
-connection_threashold = 4
+connection_threashold = 2
 
 event_recovery_threashold = 60
 event_recovery_sleep_time = 30
@@ -25,7 +25,7 @@ subscribe_arg_pattern = {'username': str, 'password': str}
 poll_return_pattern = {'response': {"data": str}}
 poll_arg_pattern = {'token': str, 'query': str}
 
-accuracy = 0.9
+accuracy = 0.5
 
 SUCCESS_CODE = 0
 ERROR_CODE = 1
