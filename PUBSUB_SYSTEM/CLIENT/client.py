@@ -10,6 +10,7 @@ from random import randint, random
 
 def receive(client_message_id, message):
     now = time.time()
+    print "Message:", message
     print "Reply time:", (now-messages[int(client_message_id)])
     return {"ack": "I feel the bern"}
 
@@ -54,7 +55,7 @@ while(True):
 
         print "Requesting:", str(ctoken)
         time_sent = time.time()
-        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="London")
+        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="")
 
         if int(response.errorcode) == globalconf.REPETITION_CODE:
             message_id = int(response.message_id)

@@ -33,7 +33,7 @@ def generate_port():
 def start_server(hostname, port, dispatcher):
     httpd = HTTPServer((hostname, port), SOAPHandler)
     httpd.dispatcher = dispatcher
-    print "Registring at %s " % (hostname + str(port))
+    print "Registring at -- %s " % (hostname + str(port))
     httpd.serve_forever()
 
 
