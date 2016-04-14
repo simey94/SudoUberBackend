@@ -64,6 +64,7 @@ class price_calculator(service_interface):
         response = client1.get_T(location=str(add_info))
         print "Temperature in %s : %s" % (add_info, response.temperature)
         self.current_temperature = int(response.temperature)
+
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
         return {"errorcode": globalconf.SUCCESS_CODE}
 
@@ -85,8 +86,8 @@ else:
 pc = price_calculator()
 pc.port = utils.generate_port()
 pc.tags = "cat,dog"
-pc.initiate_connection(linker)
 
+pc.initiate_connection(linker)
 pc.setup_server()
 pc.register()
 pc.publish()
