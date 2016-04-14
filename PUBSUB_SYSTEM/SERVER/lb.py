@@ -74,7 +74,7 @@ def service(client_message_id, user_token, service_token, additional_info):
     """
 
     if (subscribers_last_message_id[user_token] + 1) != client_message_id:
-        #print "Wrong client_id"
+        print "Wrong client_id"
         return {"errorcode": globalconf.REPETITION_CODE, "message_id": subscribers_last_message_id[user_token] + 1}
 
     events.put(
@@ -183,7 +183,7 @@ def process_events():
             user_token, service_name, add_info, client_message_id = events.get(timeout=5)
             service_token = pick_service(service_name)
             if service_token is None:
-                #print "NOT FOUND SERVICE"
+                print "NOT FOUND SERVICE"
                 continue
 
             event_id = subscribers_last_event_id[user_token]
@@ -225,12 +225,12 @@ def reply_to_events():
             message = str(message)
 
             if event_id not in processing_messages[user_token]:
-                #print "Message replay"
+                print "Message replay"
                 continue
 
             current_recovery[user_token].acquire()
             del processing_messages[user_token][event_id]
-            #print "Replying[%s] to %s(user) with %s(msg) from %s(service)" % (event_id, user_token, message, service_token)
+            print "Replying[%s] to %s(user) with %s(msg) from %s(service)" % (event_id, user_token, message, service_token)
             current_recovery[user_token].release()
             subscribers[user_token][1].receive(client_message_id=client_message_id, message=message)
         except Queue.Empty:

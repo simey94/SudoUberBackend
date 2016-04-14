@@ -13,14 +13,14 @@ _username = utils.generate_username()
 _password = utils.generate_password()
 _port = utils.generate_port()
 
-
 mfile = open("outfile"+str(_port), "w")
 file_lock = Lock()
 
 def receive(client_message_id, message):
     global mfile, file_lock
     now = time.time()
-    # print "Reply time:", (now-messages[int(client_message_id)])
+    print "Message:", message
+    print "Reply time:", (now-messages[int(client_message_id)])
     file_lock.acquire()
     value = str(now-messages[int(client_message_id)])
     mfile.write( value + "\n")
@@ -50,11 +50,11 @@ server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
 messages = {}
 message_id = 1
 while(True):
-    #    print "Looking for available services..."
+    print "Looking for available services..."
     services = str(server_client.request_services(user_token=token).services)
 
     if services != "":
-        #       print "Services:", services
+        print "Services:", services
         a_services = services.split(",")
 
         if len(a_services) == 1:
@@ -63,9 +63,9 @@ while(True):
             index = randint(0, len(a_services)-1)
             ctoken = a_services[index]
 
-        #        print "Requesting:", str(ctoken)
+        print "Requesting:", str(ctoken)
         time_sent = time.time()
-        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="London")
+        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="3")
 
         if int(response.errorcode) == globalconf.REPETITION_CODE:
             message_id = int(response.message_id)
@@ -76,7 +76,7 @@ while(True):
             else:
                 message_id += 1
     else:
-        #        print "No services found."
+        print "No services found."
         pass
 
     time.sleep(3)

@@ -25,6 +25,7 @@ def register_publisher(service_name, port, tags):
     :param tags: tags of the services
     :return: ack
     """
+    print "IN REGISTER PUB: " + service_name
     token = utils.generate_token(service_name, service_name, port)
 
     client = utils.client(globalconf.hostname % str(port))
@@ -95,7 +96,7 @@ def subscribe(username, password, port):
     token = utils.generate_token(username, password, port)
 
     server_token = alloc_server()
-    #print "Allocated %s(user) to %s(server)" % (username, server_token)
+    print "Allocated %s(user) to %s(server)" % (username, server_token)
 
     return {"token": token, "server": servers[server_token][1]}
 
@@ -114,7 +115,7 @@ dispatcher.register_function('register_publisher', register_publisher,
                              args={"service_name": str, "port": str, "tags": str})
 
 
-# print "Running the server at %s:%s" % (globalconf.http_hostname, globalconf.s_port)
+print "Running the server at %s:%s" % (globalconf.http_hostname, globalconf.s_port)
 
 Thread(target=sync_daemon).start()
 

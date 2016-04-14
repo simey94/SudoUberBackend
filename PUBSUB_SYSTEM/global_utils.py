@@ -25,7 +25,7 @@ def generate_server_token():
     return random_string(10)
 
 def generate_token(username, password, port):
-    return str(username)+str(password)+str(port)
+    return str(username)+str(password)
 
 def generate_port():
     return 7000 + int(1000 * random())
@@ -33,7 +33,7 @@ def generate_port():
 def start_server(hostname, port, dispatcher):
     httpd = HTTPServer((hostname, port), SOAPHandler)
     httpd.dispatcher = dispatcher
-    print "Registring at %s " % (hostname + str(port))
+    print "Registring at -- %s " % (hostname + str(port))
     httpd.serve_forever()
 
 
