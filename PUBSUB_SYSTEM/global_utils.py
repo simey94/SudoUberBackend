@@ -25,7 +25,7 @@ def generate_server_token():
     return random_string(10)
 
 def generate_token(username, password, port):
-    return str(username)+str(password)+str(port)
+    return str(username)+str(password)
 
 def generate_port():
     return 7000 + int(1000 * random())
