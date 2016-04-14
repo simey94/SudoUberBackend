@@ -7,20 +7,26 @@ import global_configuration as globalconf
 import global_utils as utils
 import time
 from random import randint, random
-
-mfile = open("outfile", "w")
-
-def receive(client_message_id, message):
-    global mfile
-    now = time.time()
-    # print "Reply time:", (now-messages[int(client_message_id)])
-    mfile.write(str(now-messages[int(client_message_id)]) + "\n")
-    mfile.flush()
-    return {"ack": "I feel the bern"}
+from threading import Lock
 
 _username = utils.generate_username()
 _password = utils.generate_password()
 _port = utils.generate_port()
+
+
+mfile = open("outfile"+str(_port), "w")
+file_lock = Lock()
+
+def receive(client_message_id, message):
+    global mfile, file_lock
+    now = time.time()
+    # print "Reply time:", (now-messages[int(client_message_id)])
+    file_lock.acquire()
+    value = str(now-messages[int(client_message_id)])
+    mfile.write( value + "\n")
+    mfile.flush()
+    file_lock.release()
+    return {"ack": "I feel the bern"}
 
 print "Username:%s, Password:%s, Port:%s" %(_username, _password, _port)
 client = utils.client(globalconf.location)
@@ -74,6 +80,6 @@ while(True):
         pass
 
     time.sleep(3)
-    print "-"*10
+    #print "-"*10
 
 thread.join()
