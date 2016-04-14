@@ -6,6 +6,7 @@ from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
 import time
+import Queue
 from random import randint
 
 class random_cat_fact_service(service_interface):
@@ -20,8 +21,22 @@ class random_cat_fact_service(service_interface):
         print number
         return number
 
+
     def initiate_connection(self, location):
         self.client = utils.client(location)
+
+
+    def get_connection(self):
+        return self.client
+
+
+    def get_data(self):
+        return self.list_of_cats
+
+
+    def get_demand(self):
+        return {"demand": int(self.q.qsize())}
+
 
     def setup_server(self):
         dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
@@ -41,6 +56,11 @@ class random_cat_fact_service(service_interface):
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
 
+    def register(self):
+        reply = self.client.register_publisher(service_name=self.service_name, port=self.port, tags=self.tags)
+        self.token = reply.token
+
+
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
         time.sleep(5)
         server_client = utils.client(globalconf.hostname % 1237)
@@ -53,14 +73,18 @@ class random_cat_fact_service(service_interface):
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
         return {"errorcode": globalconf.SUCCESS_CODE}
 
-    def get_connection(self):
-        return self.client
 
-    def get_data(self):
-        return self.list_of_cats
-
-    def recover_message(self):
-        pass
+    def publish(self):
+        """The publishing of the events from the queue to the load balancer"""
+        while (True):
+            try:
+                event = self.q.get(timeout=10)
+                event_id, user_token, service_token, add_info, reply_addr, client_message_id = event
+                message = "UT:%s, %s, %s" % (user_token, service_token, self.get_data())
+                utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id,
+                                                 message=message, client_message_id=client_message_id)
+            except Queue.Empty:
+                continue
 
 if len(sys.argv) > 1:
     linker = sys.argv[1]

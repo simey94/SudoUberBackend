@@ -2,7 +2,6 @@ import sys
 sys.path.append("../..")
 sys.path.append("..")
 
-import global_configuration as globalconf
 import global_utils as utils
 import os
 import Queue
@@ -13,7 +12,6 @@ class service_interface:
         self.client = None
         self.token  = None
         self.service_name = utils.generate_server_token()
-        print "SERVICE NAME", self.service_name
         self.port = None
         self.tags = ""
         self.q = Queue.Queue()
@@ -65,23 +63,14 @@ class service_interface:
         pass
 
     def get_demand(self):
-        return {"demand": int(self.q.qsize())}
+        pass
 
     def register(self):
-        reply = self.client.register_publisher(service_name = self.service_name, port = self.port, tags = self.tags)
-        self.token = reply.token
+        pass
 
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
         pass
 
-    # Publish info
     def publish(self):
         """The publishing of the events from the queue to the load balancer"""
-        while(True):
-            try:
-                event = self.q.get(timeout=10)
-                event_id, user_token, service_token, add_info, reply_addr, client_message_id = event
-                message = "UT:%s, %s, %s" % (user_token, service_token, self.get_data())
-                utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id, message=message, client_message_id=client_message_id)
-            except Queue.Empty:
-                continue
+        pass

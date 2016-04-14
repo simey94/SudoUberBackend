@@ -7,6 +7,7 @@ import json
 from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
+import Queue
 
 
 class cat_fact_collector_service(service_interface):
@@ -33,27 +34,43 @@ class cat_fact_collector_service(service_interface):
             s += " "
         return s
 
+    def isBlank(self, myString):
+        if myString and myString.strip():
+            return False
+        return True
+
+
     def initiate_connection(self, location):
         self.client = utils.client(location)
+
 
     def get_connection(self):
         return self.client
 
+
+    def get_data(self):
+        return self.list_of_cats
+
+
+    def get_demand(self):
+        return {"demand": int(self.q.qsize())}
+
+
     def setup_server(self):
         dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
         dispatcher.register_function('parse_event',
-                                     lambda event_id, user_token, service_token, add_info, reply_addr,
-                                            client_message_id: self.parse_event(event_id, user_token, service_token,
-                                                                                add_info, reply_addr,
-                                                                                client_message_id),
-                                     returns={"errorcode": int},
+                                     lambda event_id, user_token, service_token, add_info, reply_addr, client_message_id
+                                     : self.parse_event(event_id, user_token, service_token, add_info, reply_addr,
+                                                        client_message_id),
                                      args={"event_id": str, "user_token": str, "service_token": str, "add_info": str,
-                                           "reply_addr": str, "client_message_id": str})
-
+                                           "reply_addr": str,
+                                           "client_message_id": str},
+                                     returns={"errorcode": int}
+                                     )
         dispatcher.register_function('get_demand',
                                      lambda: self.get_demand(),
-                                     returns={"demand": int},
-                                     args={}
+                                     args={},
+                                     returns={"demand": int}
                                      )
 
         dispatcher.register_function('get_Cats',
@@ -64,8 +81,14 @@ class cat_fact_collector_service(service_interface):
 
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
+
+    def register(self):
+        reply = self.client.register_publisher(service_name=self.service_name, port=self.port, tags=self.tags)
+        self.token = reply.token
+
+
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
-        if not self.isBlank(add_info) :
+        if not self.isBlank(add_info):
             print "Cat fact parser event", add_info
             try:
                 random = int(add_info) + 1
@@ -76,16 +99,18 @@ class cat_fact_collector_service(service_interface):
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
         return {"errorcode": globalconf.SUCCESS_CODE}
 
-    def get_data(self):
-        return self.list_of_cats
 
-    def recover_message(self):
-        pass
+    def publish(self):
+        while (True):
+            try:
+                event = self.q.get(timeout=10)
+                event_id, user_token, service_token, add_info, reply_addr, client_message_id = event
+                message = "UT:%s, %s, %s" % (user_token, service_token, self.get_data())
+                utils.client(reply_addr).publish(service_token=service_token, user_token=user_token, event_id=event_id,
+                                                 message=message, client_message_id=client_message_id)
+            except Queue.Empty:
+                continue
 
-    def isBlank(self, myString):
-        if myString and myString.strip():
-            return False
-        return True
 
 if len(sys.argv) > 1:
     linker = sys.argv[1]
@@ -95,6 +120,7 @@ else:
 cat_fact = cat_fact_collector_service()
 cat_fact.port = 1237
 cat_fact.tags = "cat,dog"
+
 cat_fact.initiate_connection(linker)
 cat_fact.setup_server()
 cat_fact.register()
