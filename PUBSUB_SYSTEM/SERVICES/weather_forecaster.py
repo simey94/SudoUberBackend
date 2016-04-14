@@ -57,7 +57,7 @@ class weather_forecaster(service_interface):
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
         print "Weather parser event", add_info
         t = self.get_T(str(add_info))
-        print t
+        print "Temperature in %s : %s" % (add_info, t)
         self.current_temperature = int(t)
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
         return {"errorcode": globalconf.SUCCESS_CODE}

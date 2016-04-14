@@ -59,11 +59,9 @@ class service_interface:
         pass
 
     def get_demand(self):
-        print "IN DEMAND"
         return {"demand": int(self.q.qsize())}
 
     def register(self):
-        print "REGISTER"
         reply = self.client.register_publisher(service_name = self.service_name, port = self.port, tags = self.tags)
         self.token = reply.token
 
