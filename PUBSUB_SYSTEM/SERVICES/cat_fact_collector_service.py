@@ -8,7 +8,7 @@ from service_interfaces import service_interface
 import global_configuration as globalconf
 import global_utils as utils
 import Queue
-
+from termcolor import colored
 
 class cat_fact_collector_service(service_interface):
     def __init__(self):
@@ -17,25 +17,45 @@ class cat_fact_collector_service(service_interface):
         self.list_of_cats = None
 
     def find_cat_facts(self, no_of_facts):
-        url = "http://catfacts-api.appspot.com/api/facts?number="
-        try:
-            from bs4 import BeautifulSoup
-        except ImportError:
-            from BeautifulSoup import BeautifulSoup
-        url += str(no_of_facts)
-        print url
-        response = requests.get(url)
-        html = response.content
-        soup = BeautifulSoup(html)
-        catFacts = json.loads(str(soup))
-        s = ""
-        for item in catFacts["facts"]:
-            s += item.encode('ascii', 'ignore')
-            s += " "
-        if not self.isBlank(s):
-            return s
+        if 1 <= no_of_facts <= 100:
+            url = "http://catfacts-api.appspot.com/api/facts?number="
+            try:
+                from bs4 import BeautifulSoup
+            except ImportError:
+                from BeautifulSoup import BeautifulSoup
+            url += str(no_of_facts)
+            print url
+            try:
+                response = requests.get(url)
+                try:
+                    response.raise_for_status()
+                except requests.exceptions.HTTPError:
+                   print colored('API Error: catches the HTTP Error, something went wrong', 'red')
+                   return "API Error: catches the HTTP Error, something went wrong"
+            except requests.exceptions.RequestException:
+                print colored('API Error: could not find the cat facts', 'red')
+                return "API Error: catches the Request Exception, something went wrong"
+
+            html = response.content
+            soup = BeautifulSoup(html)
+            try:
+                catFacts = json.loads(str(soup))
+                s = ""
+                for item in catFacts["facts"]:
+                    s += item.encode('ascii', 'ignore')
+                    s += " "
+                if not self.isBlank(s):
+                    return s
+                else:
+                    print colored('Error: the facts were empty or could not encode into the ascii format ', 'red')
+                    return "Error, the facts were empty"
+            except ValueError, e:
+                print colored('API Error: could not find the cat facts', 'red')
+                return "API Error: could not find the cat facts"
+
         else:
-            return "Error, the facts were empty"
+            print colored('Error: number of cats should be in the range [1, 100]', 'red')
+            return "Error, number of cats should be in the range [1, 100] "
 
     def isBlank(self, myString):
         if myString and myString.strip():
@@ -94,13 +114,16 @@ class cat_fact_collector_service(service_interface):
         if not self.isBlank(add_info):
             print "Cat fact parser event", add_info
             try:
-                random = int(add_info) + 1
-                self.list_of_cats = self.find_cat_facts(int(add_info))
-            except TypeError:
-                s = "ERROR, data must be a number but was " + add_info
+                a = int(add_info)
+                if isinstance(int(add_info), int):
+                    self.list_of_cats = self.find_cat_facts(int(add_info))
+            except ValueError:
+                print colored('Error: data must be a number but was', 'red'), colored(add_info, 'green')
+                s = "Error: data must be a number but was " + add_info
                 self.list_of_cats = s
         else:
-            self.list_of_cats = "Client is not sending any add_info"
+            print colored('Error: client is not sending any', 'red'), colored('add_info', 'green')
+            self.list_of_cats = "Error: client is not sending any add_info"
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
         return {"errorcode": globalconf.SUCCESS_CODE}
 
