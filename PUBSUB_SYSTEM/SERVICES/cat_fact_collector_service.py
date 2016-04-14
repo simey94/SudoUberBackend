@@ -30,9 +30,12 @@ class cat_fact_collector_service(service_interface):
         catFacts = json.loads(str(soup))
         s = ""
         for item in catFacts["facts"]:
-            s += str(item)
+            s += item.encode('ascii', 'ignore')
             s += " "
-        return s
+        if not self.isBlank(s):
+            return s
+        else:
+            return "Error, the facts were empty"
 
     def isBlank(self, myString):
         if myString and myString.strip():

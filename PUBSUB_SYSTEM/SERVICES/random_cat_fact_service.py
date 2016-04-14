@@ -18,7 +18,6 @@ class random_cat_fact_service(service_interface):
 
     def get_random_number(self):
         number = randint(1, 10)
-        print number
         return number
 
 
