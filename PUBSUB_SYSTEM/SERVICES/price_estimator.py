@@ -40,6 +40,10 @@ class price_calculator(service_interface):
     def initiate_connection(self, location):
         self.client = utils.client(location)
 
+    def register(self):
+        reply = self.client.register_publisher(service_name=self.service_name, port=self.port, tags=self.tags)
+        self.token = reply.token
+
     def setup_server(self):
         dispatcher = utils.dispatcher("%s:%s" % (self.service_name, self.port), globalconf.hostname % self.port)
         dispatcher.register_function('parse_event',

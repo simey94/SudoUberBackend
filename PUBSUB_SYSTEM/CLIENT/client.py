@@ -63,9 +63,9 @@ while(True):
             index = randint(0, len(a_services)-1)
             ctoken = a_services[index]
 
-        #        print "Requesting:", str(ctoken)
+        print "Requesting:", str(ctoken)
         time_sent = time.time()
-        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="")
+        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="Edinburgh")
 
         if int(response.errorcode) == globalconf.REPETITION_CODE:
             message_id = int(response.message_id)
@@ -76,7 +76,7 @@ while(True):
             else:
                 message_id += 1
     else:
-        #        print "No services found."
+        print "No services found."
         pass
 
     time.sleep(3)

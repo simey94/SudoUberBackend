@@ -25,7 +25,7 @@ def register_publisher(service_name, port, tags):
     :param tags: tags of the services
     :return: ack
     """
-
+    print "IN REGISTER PUB: " + service_name
     token = utils.generate_token(service_name, service_name, port)
 
     client = utils.client(globalconf.hostname % str(port))
