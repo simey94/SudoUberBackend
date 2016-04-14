@@ -46,13 +46,7 @@ class service_interface:
         return os.system("ping " + ping_str + " " + host) == 0
 
     def initiate_connection(self, location):
-        """returns a client conenction to the server   """
-        pass
-
-    def enqueue(self):
-        pass
-
-    def dequeue(self):
+        """returns a client connection to the server """
         pass
 
     def get_connection(self):
