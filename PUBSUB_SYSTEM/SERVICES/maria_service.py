@@ -24,8 +24,6 @@ class price_calculator(service_interface):
         currentDateTime = timing_service.timing_pricing()
         us_holidays = holidays.UnitedStates()
 
-        print degreesC
-        print degreesC > 15
         if currentDateTime.date() in us_holidays:
             journeyPrice *= 1.5
         if demand > supply:
@@ -61,7 +59,7 @@ class price_calculator(service_interface):
 
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
         time.sleep(5)
-        print "HERE", add_info
+        print "Price parser event", add_info
         client1 = utils.client(globalconf.hostname % 5000)
         response = client1.get_T(location=str(add_info))
         print response.temperature

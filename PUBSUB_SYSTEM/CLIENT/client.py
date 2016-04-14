@@ -55,7 +55,7 @@ while(True):
 
         print "Requesting:", str(ctoken)
         time_sent = time.time()
-        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="Sydney")
+        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="Edinburgh")
 
         if int(response.errorcode) == globalconf.REPETITION_CODE:
             message_id = int(response.message_id)

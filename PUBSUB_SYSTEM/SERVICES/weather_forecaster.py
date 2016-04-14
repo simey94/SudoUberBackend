@@ -14,17 +14,10 @@ class weather_forecaster(service_interface):
     def __init__(self):
         service_interface.__init__(self)
         self.server_thread = None
-        self.temperature = None
-
-    def get_degrees_c(self, location):
-        setKey('<45a7v53q9qaveabsekth9ucc>', 'free')
-        w = LocalWeather(location)
-        # print w.data.current_condition.temp_C
-        return w.data.current_condition.temp_C
+        self.current_temperature = None
 
     def get_T(self, location):
-        print location
-        print "HERE"
+        print "Getting...", location
         setKey('<45a7v53q9qaveabsekth9ucc>', 'free')
         w = LocalWeather(location)
         return w.data.current_condition.temp_C
@@ -61,9 +54,16 @@ class weather_forecaster(service_interface):
 
         self.server_thread = utils.open_server_thread(globalconf.http_hostname, self.port, dispatcher)
 
+    def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
+        print "Weather parser event", add_info
+        t = self.get_T(str(add_info))
+        print t
+        self.current_temperature = int(t)
+        self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
+        return {"errorcode": globalconf.SUCCESS_CODE}
 
     def get_data(self):
-        return self.get_degrees_c("Moscow")
+        return self.current_temperature
 
     def recover_message(self):
         pass

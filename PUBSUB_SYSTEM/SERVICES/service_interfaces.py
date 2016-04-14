@@ -68,19 +68,7 @@ class service_interface:
         self.token = reply.token
 
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
-        """
-        The communication point for the loadbalancer->service side.
-        :param event_id: The id for the event produced by the load balancer
-        :param user_token: The token of the user
-        :param service_token: The token of the service
-        :param add_info: Additional info for the service
-        :param reply_addr: The address to which to send the reply to
-        :param client_message_id: The id assigned by the client
-        :return: acknowledgement
-        """
-        print "ADD INFO", add_info
-        self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
-        return {"errorcode": globalconf.SUCCESS_CODE}
+        pass
 
     # Publish info
     def publish(self):
