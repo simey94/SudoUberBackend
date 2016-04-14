@@ -8,6 +8,7 @@ file_loadbalancer = "lb.py"
 s_location = "http://localhost:%s"
 s_port = 8008
 location = s_location % s_port
+cat_port = 1237
 
 hostname = "http://localhost:%s"
 http_hostname = ""
@@ -25,7 +26,7 @@ subscribe_arg_pattern = {'username': str, 'password': str}
 poll_return_pattern = {'response': {"data": str}}
 poll_arg_pattern = {'token': str, 'query': str}
 
-accuracy = 0.9
+accuracy = 1
 
 SUCCESS_CODE = 0
 ERROR_CODE = 1

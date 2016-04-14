@@ -62,7 +62,7 @@ class random_cat_fact_service(service_interface):
 
     def parse_event(self, event_id, user_token, service_token, add_info, reply_addr, client_message_id):
         time.sleep(5)
-        server_client = utils.client(globalconf.hostname % 1237)
+        server_client = utils.client(globalconf.hostname % globalconf.cat_port)
         number = self.get_random_number()
         print "Random cat fact event ", number
         response = server_client.get_Cats(number_of_cats=int(number))

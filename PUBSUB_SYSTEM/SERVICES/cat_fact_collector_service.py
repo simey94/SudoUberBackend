@@ -99,6 +99,8 @@ class cat_fact_collector_service(service_interface):
             except TypeError:
                 s = "ERROR, data must be a number but was " + add_info
                 self.list_of_cats = s
+        else:
+            self.list_of_cats = "Client is not sending any add_info"
         self.q.put((event_id, user_token, service_token, add_info, reply_addr, client_message_id))
         return {"errorcode": globalconf.SUCCESS_CODE}
 
@@ -121,7 +123,7 @@ else:
     linker = globalconf.location
 
 cat_fact = cat_fact_collector_service()
-cat_fact.port = 1237
+cat_fact.port = globalconf.cat_port
 cat_fact.tags = "cat,dog"
 
 cat_fact.initiate_connection(linker)

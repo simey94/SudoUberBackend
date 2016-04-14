@@ -50,11 +50,11 @@ server_client.notify(user_token=token, hostname=globalconf.hostname % _port)
 messages = {}
 message_id = 1
 while(True):
-    #    print "Looking for available services..."
+    print "Looking for available services..."
     services = str(server_client.request_services(user_token=token).services)
 
     if services != "":
-        #       print "Services:", services
+        print "Services:", services
         a_services = services.split(",")
 
         if len(a_services) == 1:
@@ -65,7 +65,7 @@ while(True):
 
         print "Requesting:", str(ctoken)
         time_sent = time.time()
-        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="Edinburgh")
+        response = server_client.service(client_message_id=message_id, user_token=token, service_token=ctoken, additional_info="4")
 
         if int(response.errorcode) == globalconf.REPETITION_CODE:
             message_id = int(response.message_id)
