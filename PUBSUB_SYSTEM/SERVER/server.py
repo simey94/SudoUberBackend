@@ -96,7 +96,7 @@ def subscribe(username, password, port):
     token = utils.generate_token(username, password, port)
 
     server_token = alloc_server()
-    print "Allocated %s(user) to %s(server)" % (username, server_token)
+    #print "Allocated %s(user) to %s(server)" % (username, server_token)
 
     return {"token": token, "server": servers[server_token][1]}
 

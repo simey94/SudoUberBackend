@@ -3,7 +3,6 @@
 """Load balancer stuff"""
 runner = "python"
 file_loadbalancer = "lb.py"
-file_node = "node.py"
 
 """Main server stuff"""
 s_location = "http://localhost:%s"
@@ -25,6 +24,8 @@ subscribe_arg_pattern = {'username': str, 'password': str}
 
 poll_return_pattern = {'response': {"data": str}}
 poll_arg_pattern = {'token': str, 'query': str}
+
+accuracy = 0.9
 
 SUCCESS_CODE = 0
 ERROR_CODE = 1
